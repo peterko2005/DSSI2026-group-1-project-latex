@@ -1,0 +1,31 @@
+# LaTeX compilation auxiliary files
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.synctex(busy)
+*.toc
+*.lof
+*.lot
+*.xdv
+*.idx
+*.ilg
+*.ind
+*.vrb
+*.dpth
+*.md5
+*.auxlock
+_minted*
+__pycache__/
+
+# System files
+.DS_Store
+Thumbs.db
