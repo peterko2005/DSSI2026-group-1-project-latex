@@ -1,261 +1,126 @@
-# NTU Thesis Template
+# 臺大校總區周遭 YouBike 2.0 車輛數最適化動態調度模型與演算法
 
-A LaTeX template for National Taiwan University master's theses and doctoral
-dissertations, following 國立臺灣大學碩、博士學位論文格式規範. Chinese and English
-are both supported, and the cover, verification letter, table of contents,
-denotation list, and bibliography are all generated for you.
+> **國立臺灣大學 經濟學系《資料科學與社會探究》（Econ 5166）第一組專題報告**  
+> **專案儲存庫**：[https://github.com/peterko2005/DSSI2026-group-1-project-latex](https://github.com/peterko2005/DSSI2026-group-1-project-latex)
 
-Compile it once before changing anything — the shipped example builds to a
-complete 36-page thesis with placeholder content, so you can see every feature
-working before you replace it.
+---
 
-## Quick start on Overleaf
+## 👥 團隊成員與專案管理規範
 
-1. Download this repository as a ZIP and upload it to Overleaf as a new project.
-2. Open **Menu → Compiler** and select **XeLaTeX**. This is required: the
-   template uses `xeCJK` and `fontspec`, which pdfLaTeX cannot run.
-3. Compile.
+* **專案經理與主幹管理（Maintainer / PM）**：柯典辰（B13303082）
+* **資料工程與分析團隊（DE / DA）**：蔡睿燊（B13303057）、李芸榛（B13703038）、馮芳英（B13303096）
 
-`minted` needs the compiler to run with `-shell-escape`. Overleaf enables this
-for all projects, so nothing further is needed there.
+### ⚠️ 協作審核機制（Pull Request Review Protocol）
+本專案為確保 LaTeX 排版語法嚴謹度、防止編譯衝突（Merge Conflicts）並維持 0 Overfull `\hbox`，**主幹分支由 PM 獨立審核管理**：
+1. **嚴禁直接 Push 至 `main` 或 `backup` 分支**。
+2. 所有組員若需修改文字、新增章節或更新圖表，**必須先建立獨立分支（Branch）進行修改，完成後透過 GitHub 發起「推送請求（Pull Request, PR）」**。
+3. 由 PM 在本地編譯確認 `XeLaTeX` 通過且版面無溢出後，點擊允許合併（Merge）至主幹。
 
-## Building locally
+---
 
-The repository ships a rootless toolchain based on [Pixi](https://pixi.sh) and
-PyTinyTeX, so no system-wide TeX installation and no `sudo` are required:
+## 🚀 組員新手指南：如何下載、修改與提交 PR
 
-```bash
-pixi run setup     # download TinyTeX and install every TeX package used
-pixi run doctor    # check the installation
-pixi run build     # produce main.pdf
-pixi run clean     # remove build artifacts, keep the toolchain
-```
-
-`build` depends on `setup`, so a single `pixi run build` is enough the first
-time. TinyTeX is installed under `~/.cache/ntu-thesis-template/pytinytex`;
-`NTU_THESIS_TINYTEX_ROOT` overrides that, but keep it outside the repository or
-`minted` will refuse to run.
-
-On Intel Macs (`osx-64`), `pixi run setup` compiles one dependency from source,
-which needs Apple's SDK headers; install Xcode's Command Line Tools first
-(`xcode-select --install`) if you don't already have them.
-
-If XeLaTeX, latexmk, and Biber are already on your `PATH`, skip Pixi entirely:
+### 第一步：整包抓取專案（Clone）
+在終端機（Terminal）執行以下指令，將整包專案克隆至本地：
 
 ```bash
-latexmk -pdf -pdflatex="xelatex -shell-escape -interaction=nonstopmode -file-line-error %O %S" main.tex
+git clone https://github.com/peterko2005/DSSI2026-group-1-project-latex.git
+cd DSSI2026-group-1-project-latex
 ```
 
-When a change does not seem to take effect, `pixi run clean` and build again.
+> **💡 提示**：若需要完整的中繼編譯快取，可拉取 `backup` 分支：
+> ```bash
+> git clone -b backup https://github.com/peterko2005/DSSI2026-group-1-project-latex.git
+> ```
 
-## What to edit, in order
+---
 
-The split is deliberate: **`main.tex` holds every style and layout setting,
-`ntusetup.tex` holds nothing but personal data.**
+### 第二步：本地編譯檢驗（Compile）
+本專案基於臺大碩博士學位論文母版（`ntuthesis.cls`），排版依賴 `xeCJK` 與 `fontspec`，**必須且只能使用 XeLaTeX 引擎編譯**（pdfLaTeX 無法運行）。
 
-| Step | File | What goes in it |
-| --- | --- | --- |
-| 1 | `ntusetup.tex` | Title, author, student ID, advisor, department, keywords, DOI, email, ORCID, and the oral examination committee. The only place personal data belongs. |
-| 2 | `main.tex` | Class options, the two fonts, the verification-letter path, package loading, and the bibliography style. |
-| 3 | `front/abstract.tex` | Chinese and English abstracts, three pages each at most. |
-| 4 | `front/acknowledgement.tex` | 謝辭, optional, one page at most. |
-| 5 | `front/denotation.tex` | Symbol list. Ships one example per broad field — keep what fits, delete the rest. |
-| 6 | `contents/chapter0*.tex` | Your chapters. Chapter 2 is a live demo of every feature; delete it when you no longer need it. |
-| 7 | `back/references.bib` | Your references. Ships one worked example per biblatex entry type. |
-| 8 | `main.tex` | **Delete the `\nocite{*}` line** — it exists only so the example bibliography prints in full. |
-| 9 | `back/appendix0*.tex` | Appendices, or comment out their `\input` lines in `main.tex`. |
-
-Two things to know about the names in `ntusetup.tex`:
-
-- `college` and `institute`, and the English `college*` and `institute*`, must
-  all be names NTU publishes: the unstarred ones from
-  [學術單位](https://www.ntu.edu.tw/academics/academics_list.html), the starred
-  ones from
-  [Academics](https://www.ntu.edu.tw/english/academics/academics_list.html).
-  `college` and `college*` must be the published pair for one college, and each
-  institute must be listed under the college of its own language. A name that
-  is not on the list is a warning while you are writing and an error when you
-  generate the TDR upload script; if NTU has reorganised a college since this
-  template was last updated, `pixi run units` refreshes the list it is checked
-  against.
-- English unit names containing `&` — 98 of them do — must be written `\&`,
-  exactly as they would be to typeset on the cover.
-
-## Verification letter (口試委員審定書)
-
-`front/verification-letter.pdf` ships as NTU's **official blank master's form**,
-so page `i` is already the document you need to print and get signed. The
-doctoral form is included too — point `main.tex` at it:
-
-```latex
-\ntusetup{ verificationfile = {front/verification-letter-doctor.pdf} }
+#### 終端機一鍵編譯：
+```bash
+/Library/TeX/texbin/xelatex -interaction=nonstopmode -shell-escape main.tex
 ```
+*(Windows 使用者直接執行 `xelatex -interaction=nonstopmode -shell-escape main.tex`)*
 
-The `verification` class option chooses the source:
+編譯成功後，根目錄會生成最新版的 `main.pdf`。
 
-| Value | Behaviour |
-| --- | --- |
-| `auto` | Use the file when it exists, otherwise typeset a letter. The default. |
-| `file` | Always use the file; stop with an error when it is missing. |
-| `typeset` | Always typeset, ignoring the file. |
+#### 編輯器設定（VS Code / TeXShop / Overleaf）：
+* **VS Code**：安裝 `LaTeX Workshop` 套件，將 Recipe 設定為 `xelatex ➞ xelatex`。
+* **Overleaf**：如需上傳至 Overleaf，進入 **Menu → Compiler**，強制切換為 **XeLaTeX**。
 
-The typeset letter fills in your title, author, ID, and advisor from
-`ntusetup.tex` and leaves blank signature rules.
+---
 
-Once the letter is signed, scan it and overwrite `front/verification-letter.pdf`
-with the scan. The page number, watermark, and DOI stamp are all drawn on top
-of whatever PDF sits there, and the image is scaled to the paper without
-distortion. A PDF, PNG, or JPG all work.
-
-Deleting the file entirely falls back to the typeset letter. latexmk notices
-the file appearing, but not disappearing, so switching back needs
-`pixi run clean && pixi run build`.
-
-## Fonts
-
-`\ntufontsetup` in `main.tex` lets you choose English and Chinese fonts
-independently, using bundled font files or installed font families (including
-Overleaf's). It defaults to **Times New Roman** and **全字庫正楷體 TW-Kai**. See
-[`fonts/README.md`](fonts/README.md) for the bundled fonts and their licences.
-
-## NTU format compliance
-
-From 國立臺灣大學碩、博士學位論文格式規範 (112學年度第1學期第1次教務會議通過,
-[source](https://www.lib.ntu.edu.tw/doc/cl/THESISSAMPLE.doc)):
-
-> ＊字體：原則上中文以12號楷書（細明體及標楷體為主），英文以12號 Times New
-> Roman 打字，中文撰寫以1.5間距，英文則以雙行間距，本文留白上3公分、下2公分、
-> 左右各3公分，字體顏色為黑色
-
-The template sets the layout for you: A4 paper, a 12 pt body, the 上3 下2 左右3
-公分 margins, black body text, the cover at 18/16/14 pt centred, and the order
-of the front matter. Citation labels, URLs, and the DOI stamp are colored by
-default; `grayprint = true` (below) paints those black as well.
-
-The line spacing follows the `language` option: 1.5 for a thesis written in
-Chinese, double for one written in English, which is what the rules ask of each.
-The template calculates it from the selected fonts to match Word. Values for
-Times New Roman, 標楷體, and the bundled fonts are included; for another font,
-run `pixi run line-spacing` when the build asks. The generated custom-font file
-is loaded automatically but ignored by Git. Each Pixi build checks it against
-the selected font files and asks you to regenerate it when a font has changed.
-
-The Chinese and English abstracts always follow the spacing for their own
-language. Figure, table, and subfigure captions remain single-spaced.
-
-The lengths are yours to keep to — 摘要 at three pages and 謝辭 at one — and each
-file says so at the top; nothing stops an overlong one from typesetting.
-
-Departments may add their own rules on top of these — check with your 系所.
-
-## Grayscale printing of the text pages
-
-The class colors the citation labels green and the URLs and the per-page DOI
-stamp magenta. Printing those pages on a grayscale printer turns the citation
-labels into a mid gray that is harder to read than the text around them. The
-`grayprint` class option in `main.tex` prepares the PDF for that printer:
-
-```latex
-\documentclass[
-  grayprint = true,                 % grayprint = true | false
-]{ntuthesis}
-```
-
-| Element | `grayprint = false` (default) | `grayprint = true` |
-| --- | --- | --- |
-| Citation labels (`\cite`) | green | the text color |
-| URLs and the DOI stamp | magenta | the text color |
-| Figures | unchanged | unchanged |
-
-Links stay clickable either way, and figures keep their colors — print those
-pages in color.
-
-## Cover page as a separate PDF
-
-NTU asks for the cover (`封面`) as its own file alongside the thesis.
-`pixi run cover` reads `main.pdf` and writes `main-cover.pdf`:
+### 第三步：建立功能分支並進行修改（Branch Workflow）
+**永遠不要在本地的 `main` 分支直接修改！** 請建立屬於你自己或該任務的分支：
 
 ```bash
-pixi run cover                          # main.pdf -> main-cover.pdf
-pixi run cover -- --output front.pdf    # other input, output, or options
+# 1. 切換並建立新分支（例如修改第二章資料處理）
+git checkout -b feature/ch02-data-cleaning
+
+# 2. 編輯對應的 LaTeX 手稿（例如 contents/chapter02.tex）
+# 3. 本地編譯驗證通過（確認 main.pdf 正常產出）
+
+# 4. 提交你的修改
+git add contents/chapter02.tex
+git commit -m "feat(ch02): update exposure-adjusted count regression description"
+
+# 5. 推送你的分支至 GitHub
+git push -u origin feature/ch02-data-cleaning
 ```
 
-What you get is page one and nothing else, a small fraction of the whole
-thesis's file size, and checked against page one of `main.pdf` before the run
-reports success. Like `protect` and `spine`, it is never part of
-`pixi run build`.
+---
 
-## Spine artwork (書側)
+### 第四步：在 GitHub 上發起推送請求（Pull Request）
+1. 打開瀏覽器進入 GitHub 儲存庫：[DSSI2026-group-1-project-latex](https://github.com/peterko2005/DSSI2026-group-1-project-latex)。
+2. 頂部會自動彈出黃色提示條，點擊綠色的 **"Compare & pull request"**。
+3. 填寫你本次修改的內容摘要（例如：「完成了第二章 3.2 截斷資料處理說明」）。
+4. 點擊 **"Create pull request"** 送出。
+5. PM 收到通知後會進行代碼審查與編譯測試，確認無誤後點擊允許合併（Merge）！
 
-The bindery letters the spine, and to do that it needs the artwork at the
-finished book's exact thickness. `pixi run spine` measures the thesis and
-writes an editable ODT and a print-ready PDF for each binding:
+---
 
+## 雙分支架構說明（Dual-Branch Architecture）
+
+本專案與母庫同步採用嚴格的「雙分支推播體系」：
+
+* **`main`（展示版）**：透過 `.gitignore` 自動排除所有編譯暫存檔（`.aux`, `.log`, `.synctex.gz`, `.toc`, `.lof`, `.lot` 等），保持 GitHub 網頁端乾淨易讀。
+* **`backup`（全量備份版）**：100% 完整狀態鏡像，收錄手稿、PDF 以及所有編譯快取，供跨設備極速還原與續寫。
+
+### PM 雙分支一鍵同步指令：
 ```bash
-pixi run spine                # main.pdf -> main-spine-{paperback,hardcover}.{odt,pdf}
-pixi run spine -- --width 8   # one artwork at a thickness you measured, in mm
-pixi run spine -- -o artwork  # write them somewhere else
+./sync.sh push "commit message"   # 自動完成 main 乾淨版與 backup 全量版同步推送
+./sync.sh pull                    # 自遠端 backup 分支拉取最新全量檔案
 ```
 
-Run it after `pixi run build`. The width is estimated from `main.pdf`'s page
-count, assuming 80 磅道林紙 plus the 平裝 cover or the 精裝 board; both bindings
-are written every time. Once you have a bound copy in hand, measure it and pass
-`--width` for a single artwork at exactly that thickness.
+---
 
-Every word comes from `main.tex` and `ntusetup.tex` — the degree from the class
-options, the rest from `\ntusetup`, dated today if you leave `date` commented
-out. The layout is the one in NTU's own samples, [THESISSAMPLE.doc][zh] and
-[thesissample_en.doc][en], lined up with the cover. A block that would
-otherwise run off the artwork is set smaller, and the run reports every size it
-had to shrink.
+## 📂 專案核心目錄架構
 
-[zh]: https://www.lib.ntu.edu.tw/doc/cl/THESISSAMPLE.doc
-[en]: https://www.lib.ntu.edu.tw/doc/CL/thesissample_en.doc
-
-## Submission
-
-`pixi run protect` writes `main-protected.pdf` from `main.pdf`: an empty user
-password so it opens without prompting, and an owner password guarding the
-permission flags. Printing and accessibility text extraction stay allowed;
-copying, editing, annotating, form filling, and page assembly are denied.
-
-```bash
-pixi run protect                       # prompts for the owner password twice
-pixi run protect -- --output final.pdf # other input, output, or options
+```text
+DSSI2026-group-1-project-latex/
+├── main.tex                    # 主版面與排版樣式配置入口
+├── ntusetup.tex                # 論文個人資訊、指導教授與組員名單
+├── ntuthesis.cls               # NTU 官方論文類別定義檔
+├── environments.tex            # 特殊數學與定理環境設定
+├── sync.sh                     # main + backup 雙分支同步腳本
+├── .gitignore                  # LaTeX 編譯暫存檔過濾規範
+├── README.md                   # 本文件（小組協作與 PR 提交指南）
+├── TEMPLATE.md                 # 原 NTU Thesis 樣板詳細設定說明
+├── AGENTS.md                   # AI 助理寫作與程式碼開發規範
+├── CLAUDE.md                   # Claude 專用導引說明
+├── contents/                   # 論文各章節主體手稿
+│   ├── chapter01.tex           # 第一章：緒論（研究背景與動機）
+│   ├── chapter02.tex           # 第二章：資料特徵與真實需求還原
+│   ├── chapter03.tex           # 第三章：動態重平衡最佳化模型與演算法
+│   ├── chapter04.tex           # 第四章：模擬環境設計與候選策略評估
+│   └── chapter05.tex           # 第五章：結論與政策意涵
+├── front/                      # 前篇（中英文摘要、誌謝、符號表）
+│   ├── abstract.tex            # 中文摘要
+│   └── denotation.tex          # 符號系統定義表
+├── back/                       # 後篇（附錄、參考文獻）
+│   └── references.bib          # BibLaTeX 格式參考文獻庫
+├── figures/                    # 論文插圖與校徽向量檔
+└── fonts/                      # 內建開源中英文字型（TW-Kai、Tinos 等）
 ```
-
-Submit `main-protected.pdf` and keep the owner password. The password can also
-come from `--password` or the `NTU_THESIS_PDF_OWNER_PASSWORD` environment
-variable, which is what a non-interactive shell needs. `--encryption` selects
-`aes-256` (default), `aes-128`, or `rc4-128` for readers older than Acrobat 9.
-
-`generate_tdr_upload_script.py` builds a copy-ready JavaScript snippet that
-fills in NTU's TDR upload form, reading the metadata from `ntusetup.tex`,
-`main.tex`, `front/abstract.tex`, `main.toc`, and `main.pdf`. Run it after the
-final build. It prompts for anything it cannot infer, including any field still
-holding a template placeholder, and refuses to run while the committee still
-holds the template's example members.
-
-The generated script fills **both** TDR pages — paste it once on 輸入論文資料 and
-again on 設定口試委員名單, and it detects which one is open.
-
-The committee comes from the `\ntucommittee` entries in `ntusetup.tex`, one per
-member, each with a Chinese and English name, an email, a 身分, and an optional
-ORCID. Nothing typesets them; the signatures on the letter are handwritten.
-
-**The 指導教授 must be first.** TDR offers that 身分 only in its first committee
-block, so the entries and the blocks line up only in that order; every entry
-after it must be `共同指導教授` or `口試委員`.
-
-## Credits and license
-
-Built on the
-[NTU Thesis LaTeX Template](https://github.com/Hsins/NTU-Thesis-LaTeX-Template)
-by Hsin-Hsiang Peng (Hsins), with a scanned-verification-letter path, a seal
-watermark and DOI stamp, a rootless Pixi build, the `wherelist` environment,
-PDF permission locking, and TDR submission tooling added on top.
-
-MIT licensed, like the upstream template. See [`LICENSE`](LICENSE) — it also
-records what the MIT terms do *not* cover: the NTU seal, the official
-verification-letter forms, and the fonts, none of which belong to this
-repository.
