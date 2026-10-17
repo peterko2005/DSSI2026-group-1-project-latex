@@ -1,0 +1,362 @@
+% !TeX root = ../main.tex
+
+\chapter{動態重平衡最佳化模型與演算法}\label{chap:Dynamic Rebalancing Models & Algorithms}
+
+本章建構針對國立臺灣大學校總區（以下簡稱臺大校園）與其周遭高密度 YouBike 2.0 系統之「車輛數最適化動態調度模型與演算法體系」。校園週邊站點由於尖離峰課堂換堂、通勤轉乘與住宿區潮汐流動，面臨極度顯著的空間與時間不平衡。本研究並非單純採用局部點預測或靜態經驗法則，而是建立一套結合「截斷需求還原」、「隨機過程之單站時變生滅佇列與安全區間推導」、「空間網路之時變馬可夫鏈流動轉移」以及「運籌學最佳化之混合整數規劃（MIP）與離散凸性貪婪配置」之四階段端到端資料分析管線（End-to-End Pipeline）。
+
+\section{問題定義與符號系統}
+
+\subsection{實體情境與決策環境定義}
+
+考慮由臺大校園內部（如博雅教學館、共同教學館、綜合教學館、總圖書館）及其周邊重要交通與生活節點（如捷運公館站、捷運科技大樓站、長興與水源學生宿舍群、辛亥路與新生南路沿線）所構成之共享單車站點網絡（以下簡稱單車網絡）。實體決策環境定義如下：
+\begin{enumerate}[label = \textbullet]
+    \item \textbf{站點集合與容量}：令 $S = \{1, 2, \dots, |S|\}$ 表示研究範圍內之所有 YouBike 2.0 站點（以下簡稱站點）。每一站點 $i \in S$ 具備固定之車柱容量上限 $C_i \in \mathbb{Z}_{>0}$。
+    \item \textbf{全區可用車總數}：各站點停放之可用單車總數受限於單車網絡配置的站點車柱總規模 $N$。
+    \textcolor{red}{\item \textbf{調度車隊與載運容量}：令 $V = \{1, 2, \dots, |V|\}$ 表示負責巡迴搬運重平衡之調度卡車集合，每輛調度車輛 $v \in V$ 之最大載車容量為 $\hat{C}_v$。}（現在有分兩種調度車輛，分別是腳踏三輪車跟卡車，還有停在路邊的單車總量，這部分能討論到底要不要做。）
+    \item \textbf{時間粒度與規劃時域}：定義 $\tau \in \{1, 2, \dots, 1440\}$ 為分鐘級微觀狀態觀測索引；決策規劃則劃分為離散時段集合 $t \in T = \{1, 2, \dots, |T|\}$，每時段長度為 $\Delta t$（例如 15 分鐘、30 分鐘，或依臺大課表節次定義之區段）。
+\end{enumerate}
+
+\subsection{四階段閉環管線架構}
+
+本研究所提出之最佳化重平衡系統由四個子階段組成：
+\begin{enumerate}
+    \item \textbf{第一階段（截斷需求還原）}：原始開放資料中混雜故障無效車與人為調度跳躍資料，且在「無車可借（空站）」與「無位可還（滿站）」時，真實潛在需求遭受截斷。本階段透過暴露時間校正與鄰站斷貨溢出替代模型，還原真實借車率 $\hat{\lambda}_{i,t}$ 與真實還車率 $\hat{\mu}_{i,t}$。
+    \item \textbf{第二階段（隨機過程之單站時變生滅佇列與安全區間推導）}：將還原之借還率作為參數，建立各站點獨立之有限容量非齊次佇列模型（$M_t/M_t/1/C_i$ 生滅過程）。透過數值求解 Kolmogorov 前向微分方程組，精確推導各站使用者不滿意度凸函數（UDF），進而求解單站最適目標車數 $\ell^*_{i,t}$ 與滿足 Type-2 服務水準之安全庫存緩衝區間 $[\underline{\ell}_{i,t}, \bar{\ell}_{i,t}]$。
+    \item \textbf{第三階段（空間網路之時變馬可夫鏈流動轉移）}：考量跨站騎乘之時空連動，透過轉乘 OD 轉移機率矩陣 $P_t(i,j)$ 與騎乘延遲卷積刻畫全單車網絡自然流動；並在全網總車數約束下，基於邊際凸性貪婪演算法求解靜態最適車隊配置；進一步在日間營運中，以安全區間與目標水位為導向，建立多期動態重平衡混合整數規劃（DROB-T 與 DROB-I MIP）。
+    \item \textbf{第四階段（運籌學最佳化之混合整數規劃（MIP）與離散凸性貪婪配置）}：在 1 分鐘粒度之離散事件模擬器中，以整合使用者遺憾、搬運成本與巡迴里程之綜合評分函數 $\text{Score}$，對 4 種候選調度策略進行跨年度（2023 訓練與 2024 驗證）歷史回測。
+\end{enumerate}
+
+\subsection{論文符號系統}
+
+為確保全篇推導一致性，本研究符號定義如下：
+
+\begin{enumerate}
+\item 集合與索引
+\begin{enumerate}[label = \textbullet]
+    \item $i, j \in S$：臺大校園周遭站點索引；$\tilde{S} = S \cup \{0\}$ 為加入校外外部虛擬節點 $0$ 之擴充集合。
+    \item $v \in V$：營運調度貨車索引。
+    \item $\tau \in \{1, 2, \dots, 1440\}$：1 分鐘微觀快照時間索引。
+    \item $s, t \in T$：巨觀決策規劃時段索引（每期長度 $\Delta t$）。
+    \item $d \in \mathcal{D}$：日曆日期索引。
+    \item $\sigma \in \{0, 1, \dots, C_i\}$：站點即時庫存狀態空間。
+\end{enumerate}
+
+\item 外生資料參數與特徵變數
+\begin{enumerate}[label = \textbullet]
+    \item $C_i$：站點 $i$ 之總車柱容量（Capacity）。
+    \item $N$：全區可用單車總數上限。
+    \textcolor{red}{\item $\hat{C}_v$：調度卡車 $v$ 之最大載運容量。}
+    \item $\text{dist}_{i,j}$：站點 $i$ 與站點 $j$ 間之實際道路行車距離（公尺）。
+    \item $B^{\text{gen}}_{i,\tau}, B^{\text{elec}}_{i,\tau}, O_{i,\tau}$：時點 $\tau$ 原始觀測之一般車數、電輔車數與空柱數。
+    \item $D_{i,d}$：站點 $i$ 於日期 $d$ 之長期滯留無效故障車數。
+    \item $B^{\text{eff}}_{i,\tau}$：時點 $\tau$ 排除故障車後之真實有效可用一般車數。
+    \item $\text{EmptyMin}_{i,s}, \text{FullMin}_{i,s}$：時段 $s$ 內處於無車可借（$B^{\text{eff}} = 0$）與無位可還（$O = 0$）之分鐘數。
+    \item $\text{Exposure}^+_{i,s}, \text{Exposure}^-_{i,s}$：時段 $s$ 內有車可借與有位可還之有效暴露時間（分鐘）。
+    \item $Y^+_{i,s}, Y^-_{i,s}$：時段 $s$ 扣除調度跳躍資料後之觀測借車次數與觀測還車次數。
+    \textcolor{red}{\item $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$：識別出之調度車輛補入與移出跳躍量。}
+    \item $q^{\text{empty}}_{-i,s}, q^{\text{full}}_{-i,s}$：鄰近站點集合 $N_i$ 是否處於空站或滿站狀態之溢出替代指標。
+    \item $\text{Rain}_s, \text{Cold}_s$：降雨與低溫\textcolor{red}{（$< 15^\circ\text{C}$）}氣象虛擬變數。
+    \item $\text{Slot}_k, \text{Type}_i$：課堂時段類別與站點功能分群類別。
+    \item $\text{FriPM}_s, \text{Exam}_s, \text{Event}_s$：週五午後、考試週與大型校園活動虛擬變數。
+\end{enumerate}
+
+\item 待估計計量與隨機過程參數
+\begin{enumerate}[label = \textbullet]
+    \item $\hat{\lambda}_{i,t}, \hat{\mu}_{i,t}$：站點 $i$ 於時段 $t$ 經截斷校正後之真實潛在借車率與還車率。
+    \item $P_t(i,j)$：時段 $t$ 由站點 $i$ 借車並於站點 $j$ 歸還之轉移機率矩陣。
+    \item $f_{ij}(\tau)$：站點 $i$ 至站點 $j$ 之騎乘時間機率密度分佈。
+    \item $p_i(x, \sigma, t)$：給定期初庫存 $x$，時刻 $t$ 站點庫存為 $\sigma$ 之暫態機率。
+    \item $F_{i,t}(x), G_{i,t}(x)$：期初庫存為 $x$ 時，規劃視窗內之預期未滿足借車數與還車數。
+    \item $U_{i,t}(x)$：站點 $i$ 於時段 $t$ 之預期使用者不滿意度損失函數。
+\end{enumerate}
+
+\item 最佳化決策變數與超參數
+\begin{enumerate}[label = \textbullet]
+    \item $\ell^*_{i,t}$：站點 $i$ 於時段 $t$ 之最適單站目標庫存量。
+    \item $[\underline{\ell}_{i,t}, \bar{\ell}_{i,t}]$：站點 $i$ 於時段 $t$ 之安全庫存緩衝區間下界與上界。
+    \item $x_i$：全區靜態車隊配置中分配予站點 $i$ 之期初車數。
+    \item $d^t_i$：動態重平衡模型中站點 $i$ 於時段 $t$ 開始時之在庫車數。
+    \textcolor{red}{\item $\hat{d}^t_v$：調度卡車 $v$ 於時段 $t$ 開始時之車上載車量。}
+    \textcolor{red}{\item $r^{+,t}_{i,v}, r^{-,t}_{i,v}$：卡車 $v$ 於時段 $t$ 在站點 $i$ 移出與補入之單車數。}
+    \textcolor{red}{\item $z^t_{i,v} \in \{0, 1\}$：卡車 $v$ 於時段 $t$ 是否拜訪站點 $i$ 進行調度。}
+    \textcolor{red}{\item $\xi^t_{i,j,v} \in \{0, 1\}$：卡車 $v$ 於時段 $t$ 是否由站點 $i$ 行駛至站點 $j$。}
+    \item $e^{-,t}_i, e^{+,t}_i \ge 0$：站點庫存低於安全下界與高於安全上界之軟緩衝違規懲罰偏差量。
+    \item $w_R, w_D$：單位借車失敗與還車失敗之使用者遺憾損失權重。
+    \item $w_M, w_K$：單位搬運車輛人工成本與卡車每公里行駛里程成本權重。
+    \item $\alpha \in (0, 1)$：單站空站與滿站之最大容許風險門檻。
+\end{enumerate}
+\end{enumerate}
+
+\section{時變借還率預測模型}
+
+\subsection{無效庫存與調度事件識別剝離}
+
+在 TDX 開放資料平台中，站點所回傳之即時車輛數包含兩項干擾自然借還行為之非隨機雜訊：其一為長期損壞鎖死於車柱上之「故障無效車」；其二為營運維運團隊以貨車進行之批次人為搬移。若未預先剔除該兩項干擾，將導致借還需求之估計產生嚴重系統性偏差。
+
+本研究依據文獻方法建立兩階段資料解構過濾器（Data Deconstruction Filter）：
+\begin{enumerate}
+    \item \textbf{故障無效車識別與剔除}：在日間校園借還頻繁之尖峰時段\textcolor{red}{（如 08:00--18:00）}，若特定車柱或車輛之車機狀態連續數小時無動態更新，且周圍車輛頻繁借還而該車始終滯留，則將其標記為故障車 $D_{i,d}$。時點 $\tau$ 站點 $i$ 之真實有效可用單車數 $B^{\text{eff}}_{i,\tau}$ 修正為：
+    \begin{align}
+    B^{\text{eff}}_{i,\tau} &= \max\left\{0, \, B^{\text{gen}}_{i,\tau} - D_{i,d}\right\}
+    \end{align}
+    \item \textbf{\textcolor{red}{卡車調度跳躍資料剝離}}：計算 1 分鐘相鄰快照之車輛差分 $\Delta B_{i,\tau} = B^{\text{gen}}_{i,\tau} - B^{\text{gen}}_{i,\tau-1}$。若單分鐘內之庫存變化量 $|\Delta B_{i,\tau}|$ 超過自然騎乘對帳門檻 $\theta_{\text{rebal}}$（例如單分鐘車數突增或突減超過 \textcolor{red}{4} 輛，且無對應之校園 OD 旅次抵達），則判定為調度卡車之補車作業 $R^{\text{in}}_{i,\tau}$ 或移車作業 $R^{\text{out}}_{i,\tau}$：
+    \begin{align}
+    R^{\text{in}}_{i,\tau} &= \max\left\{0, \, \Delta B_{i,\tau}\right\} \cdot \mathbb{I}\left(|\Delta B_{i,\tau}| \ge \theta_{\text{rebal}}\right) \\
+    R^{\text{out}}_{i,\tau} &= \max\left\{0, \, -\Delta B_{i,\tau}\right\} \cdot \mathbb{I}\left(|\Delta B_{i,\tau}| \ge \theta_{\text{rebal}}\right)
+    \end{align}
+    自然借車與還車觀測量 $Y^+_{i,s}, Y^-_{i,s}$ 則僅累計扣除調度跳躍後之純自然交易流水。
+\end{enumerate}
+
+\subsection{暴露量校正與鄰站溢出之截斷計數迴歸}
+
+當站點庫存耗盡處於空站狀態（$B^{\text{eff}}_{i,\tau} = 0$）時，潛在欲借車之使用者將被迫放棄或轉移，使得系統觀測到之借車次數為 0；同理，當車柱全滿（$O_{i,\tau} = 0$）時，還車次數亦被強制截斷。若直接以觀測次數除以總時間計算借還率，將嚴重低估尖峰瓶頸站點之真實需求。
+
+為解決此內生截斷偏誤，本研究建立基於「未截斷有效暴露時間」之暴露量校正計數模型。在時段 $s$（時長 $\Delta t_s$）內，定義有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$：
+\begin{align}
+\text{Exposure}^+_{i,s} &= \Delta t_s - \text{EmptyMin}_{i,s} \\
+\text{Exposure}^-_{i,s} &= \Delta t_s - \text{FullMin}_{i,s}
+\end{align}
+其中 $\text{EmptyMin}_{i,s}$ 與 $\text{FullMin}_{i,s}$ 分別為時段 $s$ 內該站在庫車數為 0 與滿位之累計分鐘數。
+
+此外，借車者若遭遇鄰近站點斷貨，會就近步行至周遭站點借車，產生跨站溢出效應。令 $N_i$ 為站點 $i$ 步行距離 \textcolor{red}{300} 公尺內之鄰近站點集合，定義鄰站空站指標變數：
+\begin{align}
+q^{\text{empty}}_{-i,s} &= \mathbb{I}\left( \sum_{j \in N_i} \text{EmptyMin}_{j,s} > 0 \right)
+\end{align}
+藉此，真實潛在借車次數 $Y^+_{i,s}$ 遵循暴露量校正之負二項計數迴歸模型（Negative Binomial Regression）：
+\begin{equation}
+\boxed{
+\begin{aligned}
+\log E\left[Y^+_{i,s}\right] &= \log\left(\text{Exposure}^+_{i,s}\right) + \alpha_i + \sum_{k} \gamma_k \left(\text{Slot}_k \times \text{Type}_i\right) \\
+&\quad + \beta_1 \text{Rain}_s + \beta_2 \text{Cold}_s \\
+&\quad + \beta_3 \text{Exam}_s + \beta_4 \text{FriPM}_s + \beta_5 \text{Holiday}_s + \beta_6 \text{Event}_s \\
+&\quad + \rho \cdot q^{\text{empty}}_{-i, s}
+\end{aligned}
+}
+\end{equation}
+上述式子之所以要用暴露量校正負二項計數模型是因為借車次數是非負整數，不可能出現連續數值。如果用傳統 OLS 線性迴歸，很容易在特定時段預測出「借車 $-2.5$ 次」這種不可能的結果。
+還車端需求模型則對稱以 $\log\left(\text{Exposure}^-_{i,s}\right)$ 作為 Offset 項並納入鄰站滿位指標 $q^{\text{full}}_{-i,s}$ 估計。由最大概似法估計（MLE）所得之單位時間期望借車率與還車率即為：
+\begin{align}
+\hat{\lambda}_{i,t} &= \frac{E\left[Y^+_{i,t}\right]}{\text{Exposure}^+_{i,t}} \\
+\hat{\mu}_{i,t} &= \frac{E\left[Y^-_{i,t}\right]}{\text{Exposure}^-_{i,t}}
+\end{align}
+
+\subsection{\textcolor{red}{非線性機器學習短期預測架構}}
+
+\textcolor{red}{除可解釋性計量模型外，本研究進一步構建梯度提升決策樹（LightGBM）模型，納入前 $10$ 分鐘、前 $30$ 分鐘與前 $60$ 分鐘之滾動滯後借還量（$\text{Lag}_{10\text{m}}, \text{Lag}_{30\text{m}}, \text{Lag}_{60\text{m}}$）、校園即時氣象監測特徵與空間距離權重矩陣，進行未來 15 至 60 分鐘之高頻短期預測。在實證比較中，以均方根誤差（RMSE）與平均絕對誤差（MAE）檢驗計量還原需求與機器學習特徵預測之泛化能力。}
+
+\section{單站安全庫存區間推導}
+
+\subsection{時變生滅過程與 Kolmogorov 前向微分方程組}
+
+獲得站點 $i$ 於未來時段之真實時變借車率 $\hat{\lambda}_i(t)$ 與還車率 $\hat{\mu}_i(t)$ 後，單站庫存動態並非確定性線流，而是一個在有限容量狀態空間 $\mathcal{S}_i = \{0, 1, \dots, C_i\}$ 運行的非齊次生滅過程（Non-Stationary Birth-Death Process），記為 $M_t/M_t/1/C_i$ 雙端佇列。其中單車歸還對應於「生（Birth）」過程，瞬時速率為 $\mu_i(t)$；單車借出對應於「滅（Death）」過程，瞬時速率為 $\lambda_i(t)$。
+
+給定規劃初始時刻（$t = 0$）之在庫車數 $I_i(0) = x \in \mathcal{S}_i$，令 $p_i(x, \sigma, t) = \Pr\left(I_i(t) = \sigma \mid I_i(0) = x\right)$ 表示在時刻 $t$ 該站庫存恰為 $\sigma$ 輛之暫態機率分佈。此機率向量滿足下列 Kolmogorov 前向微分方程組：
+\begin{align}
+\frac{d\, p_i(x, 0, t)}{dt} &= \lambda_i(t) p_i(x, 1, t) - \mu_i(t) p_i(x, 0, t) \\
+\frac{d\, p_i(x, \sigma, t)}{dt} &= \lambda_i(t) p_i(x, \sigma+1, t) + \mu_i(t) p_i(x, \sigma-1, t) \\
+&\quad - \left(\lambda_i(t) + \mu_i(t)\right) p_i(x, \sigma, t), \quad \forall\ \sigma = 1, \dots, C_i - 1 \tag*{} \\ 
+\frac{d\, p_i(x, C_i, t)}{dt} &= \mu_i(t) p_i(x, C_i-1, t) - \lambda_i(t) p_i(x, C_i, t)
+\end{align}
+其初始條件為：
+\begin{align}
+p_i(x, \sigma, 0) &= \begin{cases}
+1, & \text{若 } \sigma = x \\
+0, & \text{若 } \sigma \ne x
+\end{cases}
+\end{align}
+對於時變轉移速率，本研究採用四階 Runge-Kutta 數值積分法或均勻化常微分方程數值解法，在離散步長下精確追蹤狀態機率分佈向量 $\mathbf{p}_i(x, t)$ 之動態演變。
+
+\subsection{首次觸及邊界時間}
+
+透過將邊界狀態 $\sigma = 0$ 與 $\sigma = C_i$ 分別設為吸收態，可推導在期初車數為 $x$ 之條件下，該站點首次耗盡成為空站之隨機時間 $T^0_i(x) = \inf\{t > 0 \mid I_i(t) = 0\}$ 以及首次全滿之隨機時間 $T^C_i(x) = \inf\{t > 0 \mid I_i(t) = C_i\}$ 之累積機率分佈：
+\begin{align}
+\Pr\left(T^0_i(x) \le t\right) &= p^{\text{abs}, 0}_i(x, 0, t) \\
+\Pr\left(T^C_i(x) \le t\right) &= p^{\text{abs}, C}_i(x, C_i, t)
+\end{align}
+此項指標提供調度員直觀的「預期剩餘安全營運時間」，意思是在站點 $i$ ，把「 0 輛車」改造成黑洞（Absorbing）之後，計算從 $x$ 輛車出發，在時間 $t$ 之內「第一次被借光」或「第一次被停滿」的累積機率。一旦 $\Pr\left(T^0_i(x) \le \textcolor{red}{15\text{ min}}\right)$ 超過安全閾值，即刻觸發調度預警信號。
+
+\subsection{\textcolor{red}{使用者不滿意度凸函數（UDF）與單站最適目標庫存}}
+
+在未來規劃視窗 $[t, t+H]$ 內（例如未來 1 小時），若站點在庫車數為 0，則新到達之借車需求無法被滿足，形成「無車可借遺憾」；若站點在庫車數達到容量上限 $C_i$，則欲歸還之單車無法停入，形成「無位可還遺憾」。定義在期初庫存量為 $x$ 下，該視窗內預期未滿足借車數 $F_{i,t}(x)$ 與預期未滿足還車數 $G_{i,t}(x)$ 為：
+\begin{empheq}[box=\fbox]{align}
+F_{i,t}(x) &= \int_{t}^{t+H} \lambda_i(\tau) \, p_i(x, 0, \tau) \, d\tau \\
+G_{i,t}(x) &= \int_{t}^{t+H} \mu_i(\tau) \, p_i(x, C_i, \tau) \, d\tau
+\end{empheq}
+引入借還失衡懲罰權重 $w_R$（借車失敗損失）與 $w_D$（還車失敗損失），定義站點 $i$ 於時段 $t$ 之預期使用者不滿意度函數（User Dissatisfaction Function, UDF）：
+\begin{align}
+U_{i,t}(x) &= w_R F_{i,t}(x) + w_D G_{i,t}(x)
+\end{align}
+當期初庫存 $x$ 增加時：
+\begin{enumerate}
+    \item 系統觸及下邊界 $\sigma = 0$ 之機率嚴格遞減，且邊際降幅隨 $x$ 遞減，故 $F_{i,t}(x)$ 對 $x$ 為嚴格遞減的嚴格凸函數。
+    \item 系統觸及上邊界 $\sigma = C_i$ 之機率嚴格遞增，且邊際增幅隨 $x$ 遞增，故 $G_{i,t}(x)$ 對 $x$ 為嚴格遞增的嚴格凸函數。
+\end{enumerate}
+由於兩正權重離散嚴格凸函數之線性組合依然為離散嚴格凸函數，故 $U_{i,t}(x)$ 在整數定義域 $\{0, 1, \dots, C_i\}$ 上具有離散嚴格凸性。
+
+基於此嚴格凸性保證，單站無約束最佳目標庫存水位 $\ell^*_{i,t}$ 存在且唯一：
+\begin{align}
+\ell^*_{i,t} &= \arg\min_{x \in \{0, 1, \dots, C_i\}} U_{i,t}(x)
+\end{align}
+此目標庫存即代表在不考慮卡車搬運成本下，最能抵抗未來隨機失衡之黃金庫存點。
+
+\subsection{\textcolor{red}{服務水準驅動之安全庫存緩衝區間}}
+
+在實務營運中，調度卡車不可能隨時將每座站點維持在單一固定之目標點 $\ell^*_{i,t}$，此舉將導致極高之無效搬運成本。合理的營運策略為允許站點在庫車數在一個滿足服務水準之「安全緩衝區間」內自由浮動。
+
+令 $\alpha \in (0, 1)$ 為營運商設定之最大失衡容許風險門檻（例如 $\alpha = 0.05$，代表在未來規劃時段內，站點空站或滿站之累積機率不得超過 $5\%$，即保證 $95\%$ 之 Type-2 服務水準）。定義單站安全庫存區間 $[\underline{\ell}_{i,t}, \bar{\ell}_{i,t}]$ 為：
+\textcolor{red}{（太長了）}
+\begin{empheq}[box=\fbox]{align}
+\underline{\ell}_{i,t} &= \min\left\{ x \in \{0, 1, \dots, C_i\} \;\middle|\; \int_{t}^{t+H} \lambda_i(\tau) p_i(x, 0, \tau) d\tau \le \alpha \int_{t}^{t+H} \lambda_i(\tau) d\tau \right\} \\
+\bar{\ell}_{i,t} &= \max\left\{ x \in \{0, 1, \dots, C_i\} \;\middle|\; \int_{t}^{t+H} \mu_i(\tau) p_i(x, C_i, \tau) d\tau \le \alpha \int_{t}^{t+H} \mu_i(\tau) d\tau \right\}
+\end{empheq}
+當且僅當 $\underline{\ell}_{i,t} \le \bar{\ell}_{i,t}$ 時，存在可行之安全在庫車數能同時滿足借還兩端服務水準。若計算結果出現：
+\begin{align}
+\underline{\ell}_{i,t} &> \bar{\ell}_{i,t}
+\end{align}
+則表示該站點在當前時段之總容量 $C_i$ 物理上過小，即便期初擺放任何車數，亦無法單靠被動庫存同時防禦空站與滿站。此類站點在系統中被分類為「\textcolor{red}{高度瓶頸站點}」，表示在日間營運中，必須優先派遣調度車輛進行期中動態補抽車作業。
+
+\section{全區時變馬可夫鏈與流動轉移}
+
+\subsection{全區時變 OD 馬可夫網絡流動模型}
+
+單站生滅過程假設各站點之流入速率 $\mu_i(t)$ 為獨立外生給定，然而在臺大校園網絡中，站點間存在高度內生連動（例如：學生於 08:00 從捷運公館站借車，約 7 分鐘後大量湧入博雅教學館還車）。為刻畫跨站連動機制，本研究建立時變起訖點（Origin-Destination, OD）馬可夫流動模型。
+
+令 $\tilde{S} = S \cup \{0\}$ 為擴充站點集合，其中虛擬節點 $0$ 代表臺大校園單車網絡範圍外之其餘區域。由長期租借流水紀錄估計在時段 $t$ 由站點 $i$ 借出之單車最終於站點 $j$ 歸還之轉移機率矩陣 $P_t = \left[P_t(i, j)\right]$，其滿足全機率條件：
+\begin{align}
+\sum_{j \in \tilde{S}} P_t(i, j) &= 1, \quad \forall\ i \in \tilde{S}, t \in T
+\end{align}
+令 $f_{ij}(\tau)$ 為站點 $i$ 至站點 $j$ 之間騎乘旅行時間 $\tau$ 之機率密度函數（以 Log-normal 分佈校準估計）。在無調度卡車介入之自然狀態下，時點 $t$ 抵達站點 $j$ 之全區自然流入率 $\mu^{\text{net}}_j(t)$ 為所有上游站點歷史借出量經轉移機率與行程時間延遲卷積而成：
+\begin{align}
+\mu^{\text{net}}_j(t) &= \sum_{i \in \tilde{S}} \int_{0}^{t} \hat{\lambda}_i(t - \tau) \, P_{t-\tau}(i, j) \, f_{ij}(\tau) \, d\tau
+\end{align}
+此式的 $\hat{\lambda}_i(t - \tau)$ 表示在 $\tau$ 分鐘前，站點 $i$ 借出了多少車； $P_{t-\tau}(i, j)$ 表示從 $i$ 借車的人，有多大的機率會騎到站點 $j$ ； $f_{ij}(\tau)$ 表示從 $i$ 騎到 $j$ 剛好花費 $\tau$ 分鐘的機率，將他們相乘可得時點 $t$ 站點 $j$ 當下真實迎來的還車洪峰 $\mu^{\text{net}}_j(t)$。
+
+\subsection{全區總車數受限之邊際貪婪分配模型}
+
+在靜態重平衡情境（例如每日清晨 \textcolor{red}{10:00（要看資料計算尖峰）} 晨間尖峰來臨前，全校可用單車總數固定為 $N$ 輛），營運商必須決定如何將此 $N$ 輛單車最適分配至全區各大站點，作為當日之期初庫存向量 $\mathbf{x} = (x_1, x_2, \dots, x_{|S|})$。
+靜態車隊最適配置問題表述為離散資源分配模型：
+\begin{equation}
+\boxed{
+\begin{aligned}
+\min_{\mathbf{x}} \quad & \sum_{i \in S} U_{i,t}(x_i) = \sum_{i \in S} \left[ w_R F_{i,t}(x_i) + w_D G_{i,t}(x_i) \right] \quad \text{s.t.} \quad \sum_{i \in S} x_i = N \\
+& x_i \in \{0, 1, \dots, C_i\}, \quad \forall\ i \in S
+\end{aligned}
+}
+\end{equation}
+由於各站點不滿意度目標函數 $U_{i,t}(x_i)$ 皆為離散嚴格凸函數，且全網總目標為可分之凸函數和，本模型屬於經典離散凸資源分配問題。定義站點 $i$ 增加第 $x_i + 1$ 輛車所帶來之邊際損失改善量：
+\begin{align}
+\Delta U_i(x_i) &= U_{i,t}(x_i + 1) - U_{i,t}(x_i)
+\end{align}
+由凸性可知，$\Delta U_i(x_i)$ 隨 $x_i$ 嚴格遞增。求解本模型直接採用邊際貪婪演算法：
+\begin{enumerate}
+    \item 初始化：令所有站點初始車數 $x_i = 0, \forall\ i \in S$，剩餘可分配車輛數 $k = N$。
+    \item 迴圈指派：在每一輪中，挑選目前邊際斜率最陡、即邊際改善效果最大之站點 $i^* = \arg\min_{i \in S, x_i < C_i} \Delta U_i(x_i)$，將一輛車指派給該站點：$x_{i^*} \leftarrow x_{i^*} + 1$。
+    \item 終止條件：重複執行至 $k = 0$（總共分配 $N$ 次）。
+\end{enumerate}
+
+\section{\textcolor{red}{多期動態重平衡最佳化混合整數規劃（思考一下到底要不要寫）}}
+
+\subsection{動態重平衡決策架構}
+
+在日間營運期間，隨著課堂作息與捷運人流湧入，靜態期初配置逐漸產生失衡。營運商出動載重為 $\hat{C}_v$ 之調度貨車車隊 $V$，在規劃期程 $T$ 內進行站點間之動態車輛移轉。為平衡服務水準與物流成本，本研究構建多期動態重平衡混合整數規劃模型（Dynamic Rebalancing Optimization Model, DROB）。
+
+\subsection{基於安全區間之軟緩衝規劃模型（DROB-I MIP）}
+
+在 DROB-I（Interval-based）模型中，只要站點庫存維持在安全緩衝區間 $[\underline{\ell}^t_i, \bar{\ell}^t_i]$ 內，系統即認定其服務品質達標而不產生處罰；一旦庫存跌破下界或溢出上界，則引發軟約束懲罰偏差變數 $e^{-, t}_i$ 與 $e^{+, t}_i$。綜合決策目標由三部分構成：
+\begin{enumerate}
+    \item \textbf{服務水準失衡懲罰成本}：以權重 $w_R$ 處罰缺車偏差 $e^{-, t}_i$，以權重 $w_D$ 處罰滿位偏差 $e^{+, t}_i$；
+    \item \textbf{人工作業裝卸成本}：以單位單車裝卸搬運成本 $w_M$ 懲罰貨車移出量 $r^{+, t}_{i,v}$ 與補入量 $r^{-, t}_{i,v}$；
+    \item \textbf{調度車輛巡迴里程成本}：以每公里運輸成本 $w_K$ 懲罰卡車行駛里程 $\text{dist}_{i,j} \xi^t_{i,j,v}$。
+\end{enumerate}
+
+完整混合整數規劃數學模型建構如下：
+\begin{align}
+\min \quad & \sum_{t \in T} \sum_{i \in S} \left( w_R e^{-, t}_i + w_D e^{+, t}_i \right) + w_M \sum_{t \in T} \sum_{i \in S} \sum_{v \in V} \left( r^{+, t}_{i,v} + r^{-, t}_{i,v} \right) \\
+&\quad + w_K \sum_{t \in T} \sum_{i \in S} \sum_{j \in S} \sum_{v \in V} \text{dist}_{i,j} \, \xi^t_{i,j,v}
+\end{align}
+限制條件包括：
+\begin{enumerate}
+    \item \textbf{安全庫存區間軟約束（Soft Interval Buffer Constraints）}：
+    \begin{align}
+    \underline{\ell}^t_i - e^{-, t}_i &\le d^t_i \le \bar{\ell}^t_i + e^{+, t}_i, \quad \forall\ i \in S, t \in T \\
+    e^{-, t}_i, e^{+, t}_i &\ge 0, \quad \forall\ i \in S, t \in T
+    \end{align}
+    \item \textbf{站點動態庫存流平衡方程（Station Inventory Flow Balance）}：
+    \begin{align}
+    d^{t+1}_i &= d^t_i - \Delta_{\text{net}, i}^t + \sum_{v \in V} \left( r^{-, t}_{i,v} - r^{+, t}_{i,v} \right), \quad \forall\ i \in S, t \in T \\
+    0 &\le d^t_i \le C_i, \quad \forall\ i \in S, t \in T
+    \end{align}
+    其中 $\Delta_{\text{net}, i}^t = \left(\hat{\lambda}_{i,t} - \hat{\mu}_{i,t}\right) \Delta t$ 為時段 $t$ 內預期淨自然借出量。
+    \item \textbf{調度卡車車上載量動態守恆（Vehicle Load Balance）}：
+    \begin{align}
+    \hat{d}^{t+1}_v &= \hat{d}^t_v + \sum_{i \in S} \left( r^{+, t}_{i,v} - r^{-, t}_{i,v} \right), \quad \forall\ v \in V, t \in T \\
+    0 &\le \hat{d}^t_v \le \hat{C}_v, \quad \forall\ v \in V, t \in T
+    \end{align}
+    \item \textbf{卡車拜訪與裝卸容量耦合約束（Vehicle Visit and Loading Coupling）}：
+    \begin{align}
+    r^{+, t}_{i,v} + r^{-, t}_{i,v} &\le \hat{C}_v z^t_{i,v}, \quad \forall\ i \in S, v \in V, t \in T
+    \end{align}
+    此式確保僅當貨車 $v$ 於時段 $t$ 決定拜訪站點 $i$（$z^t_{i,v} = 1$）時，方可進行裝卸單車作業。
+    \item \textbf{車輛路徑連續性與節點流平衡（Vehicle Routing Continuity）}：
+    \begin{align}
+    \sum_{j \in S \cup \{0\}} \xi^t_{i,j,v} &= z^t_{i,v}, \quad \forall\ i \in S, v \in V, t \in T \\
+    \sum_{i \in S \cup \{0\}} \xi^t_{i,j,v} - \sum_{k \in S \cup \{0\}} \xi^t_{j,k,v} &= 0, \quad \forall\ j \in S, v \in V, t \in T
+    \end{align}
+    其中節點 $0$ 代表車輛基地或車隊出發原點。
+    \item \textbf{變數定義域與整數性限制}：
+    \begin{align}
+    d^t_i, \hat{d}^t_v, r^{+, t}_{i,v}, r^{-, t}_{i,v} &\in \mathbb{Z}_{\ge 0}, \quad \forall\ i \in S, v \in V, t \in T \\
+    z^t_{i,v}, \xi^t_{i,j,v} &\in \{0, 1\}, \quad \forall\ i, j \in S \cup \{0\}, v \in V, t \in T
+    \end{align}
+\end{enumerate}
+
+\subsection{基於目標庫存之追蹤模型（DROB-T MIP）}
+
+與區間模型對比，若營運策略傾向維持各站於絕對最適庫存點，則目標函數第一項可替換為對單站目標庫存 $\ell^{*, t}_i$ 之絕對離差懲罰：
+\begin{align}
+\min \quad & \sum_{t \in T} \sum_{i \in S} \left( w_R \delta^{-, t}_i + w_D \delta^{+, t}_i \right) + w_M \sum_{t \in T} \sum_{i \in S} \sum_{v \in V} \left( r^{+, t}_{i,v} + r^{-, t}_{i,v} \right) \\
+&\quad + w_K \sum_{t \in T} \sum_{i \in S} \sum_{j \in S} \sum_{v \in V} \text{dist}_{i,j} \, \xi^t_{i,j,v}
+\end{align}
+限制條件中之區間約束替換為：
+\begin{align}
+d^t_i - \ell^{*, t}_i &= \delta^{+, t}_i - \delta^{-, t}_i, \qquad \delta^{+, t}_i, \delta^{-, t}_i \ge 0, \quad \forall\ i \in S, t \in T
+\end{align}
+此變體即為目標庫存導向模型（DROB-T）。在實證中，DROB-I 具備「容許合理波動、顯著降低卡車無效移動」之強大彈性，而 DROB-T 則適用於超高流量極端瓶頸期。
+
+\section{總調度成本與服務水準評分函數}
+
+\subsection{多視角綜合評分函數}
+
+為公正衡量不同調度演算法在「使用者體驗滿意度」與\textcolor{red}{「營運商作業成本」}之間的成效，本研究設計標準化綜合評分函數 $\text{Score}$：
+\begin{empheq}[box=\fbox]{align}
+\text{Score} &= w_{\text{regret}} \cdot \text{Cost}_{\text{regret}} + w_{\text{move}} \cdot \text{Cost}_{\text{move}} + w_{\text{dist}} \cdot \text{Cost}_{\text{dist}}
+\end{empheq}
+各分項成本之微觀累計定義如下：
+\begin{enumerate}
+    \item \textbf{使用者遺憾成本（$\text{Cost}_{\text{regret}}$）}：在微觀模擬器中，加權計算全日所有因空站導致借車失敗之人次 $N_{\text{rent\_fail}}$ 與因滿站導致還車失敗之人次 $N_{\text{return\_fail}}$：
+    \begin{align}
+    \text{Cost}_{\text{regret}} &= w_R \cdot N_{\text{rent\_fail}} + w_D \cdot N_{\text{return\_fail}}
+    \end{align}
+    \item \textcolor{red}{\textbf{調度搬運成本（$\text{Cost}_{\text{move}}$）}：}統計營運車輛全日實際裝載移出與卸下補入之單車總台數：
+    \begin{align}
+    \text{Cost}_{\text{move}} &= \sum_{t \in T} \sum_{i \in S} \sum_{v \in V} \left( r^{+, t}_{i,v} + r^{-, t}_{i,v} \right)
+    \end{align}
+    \item \textcolor{red}{\textbf{車輛行駛里程成本（$\text{Cost}_{\text{dist}}$）}：}統計調度卡車在路網中行駛之累計總公里數：
+    \begin{align}
+    \text{Cost}_{\text{dist}} &= \sum_{t \in T} \sum_{i \in S} \sum_{j \in S} \sum_{v \in V} \frac{\text{dist}_{i,j}}{1000} \cdot \xi^t_{i,j,v}
+    \end{align}
+\end{enumerate}
+藉由設定不同之權重向量 $(w_{\text{regret}}, w_{\text{move}}, w_{\text{dist}})$，可描繪出完整之 Pareto 最優前緣（Pareto Frontier），為不同管理預算情境提供具彈性之量化依據。
+
+\textcolor{red}{（這裡特別圈起來是因為，邏輯上這東西是固定成本，我認真覺得可能根本不用考慮無需計算，他們現在是無效調用車輛排列，而不是沒能力排列車輛，完全不需要考慮廠商的成本，目前最重要的反而是使用者遺憾成本）}
+
+\subsection{候選調度策略比較設定}
+
+為全面驗證本研究所提出模型之優越性，模擬評估環境設計由 4 種候選調度策略進行性能對比：
+\begin{enumerate}
+    \item \textbf{Policy 1 無調度現狀基準}：將各站點期初車輛數設為基本車柱容量比例（如 $C_i / 2$），日間營運完全不派遣貨車進行動態調度，純仰賴自然潮汐借還，作為反映系統自然失衡嚴重程度之對照底線。
+    \item \textbf{Policy 2 靜態期初貪婪配置}：僅於晨間尖峰前採用第 3.4.2 節之離散凸性邊際貪婪演算法分配全校期初車隊配置，日間則不出動貨車調度，藉以檢驗單靠靜態期初最佳化是否足以抵禦校園換堂潮汐，並突顯日間動態調度之必要性。
+    \item \textbf{Policy 3 目標庫存點動態調度}：晨間執行靜態貪婪配置，日間則依據第 3.5.3 節之目標庫存追蹤模型（DROB-T MIP），派遣貨車嚴格追蹤單站生滅過程最適目標水位 $\ell^{*, t}_i$，作為傳統無緩衝點追蹤調度之代表基準。
+    \item \textbf{Policy 4 安全庫存區間動態調度}：本研究提出之核心完整模型。結合第 3.4.1 節之全區 OD 時變馬可夫網路流動預測與第 3.5.2 節之安全庫存區間軟緩衝模型（DROB-I MIP），僅於庫存突破安全區間 $[\underline{\ell}^t_i, \bar{\ell}^t_i]$ 時進行精準干預，兼顧高服務水準與低搬運里程成本。
+\end{enumerate}
+透過橫跨 2023 年（模型校準與參數學習）與 2024 年（獨立測試與跨年度驗證）之歷史資料回測，評估各策略在不同氣候情境（晴天 vs 豪雨）、教學行事曆（一般上課日 vs 期中考試週 vs 寒暑假）下之 $\text{Score}$ 表現，驗證安全庫存區間機制在降低調度成本與消弭校園無車可借痛點上之顯著突破。
