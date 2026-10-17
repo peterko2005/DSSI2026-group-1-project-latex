@@ -1,0 +1,84 @@
+% !TeX root = ./main.tex
+
+% --------------------------------------------------
+% 資訊設定（Information Configs）
+% --------------------------------------------------
+%
+% 這個檔案只放個人資料，版面與樣式設定一律寫在 main.tex。
+% 星號版本（university* 等）是英文，無星號版本是中文。
+%
+% This file holds personal information only; style and layout live in main.tex.
+% The starred keys hold the English text, the unstarred ones the Chinese.
+
+\ntusetup{
+  university*   = {National Taiwan University},
+  university    = {國立臺灣大學},
+  college       = {社會科學院},
+  college*      = {College of Social Sciences},
+  institute     = {},%工業工程學研究所},
+  institute*    = {},%Institute of Industrial Engineering},
+  title         = {臺大周遭 YouBike 2.0 站點的車輛數最適化調度問題},
+  title*        = {Optimal Bike Inventory Rebalancing Problem for YouBike 2.0 Stations around NTU},
+  author        = {柯典辰、蔡睿燊、李芸榛、馮芳英},
+  author*       = {Tien-Chen Ko, Rui-Shen Tsai, Yun-Jhen Li, and Phung Thi Phuong Anh},
+% ID            = {R12345678},
+  advisor       = {陳由常},
+  advisor*      = {Yu-Chang Chen},
+% date          = {2026-08-11},         % 若註解掉，則預設為當天
+% oral-date     = {2026-01-19},         % 若註解掉，則預設為當天
+% DOI           = {DOI Number},         % 送出論文後由臺大配發
+  keywords      = {關鍵字一, 關鍵字二, 關鍵字三},
+  keywords*     = {Keyword One, Keyword Two, Keyword Three},
+% email         = {stitch@ntu.edu.tw},  % 以下兩項不會排進論文，
+% ORCID         = {0000-0000-0000-0000},% 只供 generate_tdr_upload_script.py 使用
+}
+
+% --------------------------------------------------
+% 口試委員名單（Oral Examination Committee）
+% --------------------------------------------------
+%
+% 這份名單不會排進論文。審定書上的簽名由委員親筆簽署，模板不代排；名單只給
+% generate_tdr_upload_script.py 讀取，用來填寫 TDR 上傳表單。
+%
+% 每位委員呼叫一次 \ntucommittee，順序即為表單上的順序。欄位：
+%
+%   name    委員中文姓名
+%   name*   委員英文姓名
+%   email   聯絡信箱
+%   title   身分：指導教授、共同指導教授、口試委員
+%   ORCID   選填
+%
+% This list is never typeset. Signatures on the letter are handwritten; the list
+% exists only for generate_tdr_upload_script.py to fill in the TDR form. Call
+% \ntucommittee once per member, in the order they should appear. ORCID is
+% optional; every other field is required.
+
+\ntucommittee{
+  name   = {莉蘿},
+  name*  = {Lilo Pelekai},
+  email  = {lilo@ntu.edu.tw},
+  title  = {指導教授},
+  ORCID  = {0000-0000-0000-0001},
+}
+
+\ntucommittee{
+  name   = {娜妮},
+  name*  = {Nani Pelekai},
+  email  = {nani@ntu.edu.tw},
+  title  = {共同指導教授},
+}
+
+\ntucommittee{
+  name   = {朱巴},
+  name*  = {Jumba Jookiba},
+  email  = {jumba@example.edu.tw},
+  title  = {口試委員},
+  ORCID  = {0000-0000-0000-0002},
+}
+
+\ntucommittee{
+  name   = {普里克利},
+  name*  = {Wendy Pleakley},
+  email  = {pleakley@example.edu.tw},
+  title  = {口試委員},
+}
