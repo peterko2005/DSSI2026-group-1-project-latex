@@ -83,13 +83,13 @@
 在共享單車系統之實證研究中，欲由歷史營運資料還原使用者之真實潛在需求率，首要面臨之計量挑戰在於站點庫存快照與自然借還行為之間存在兩項不可觀測之非隨機干擾：其一為因機械故障而長期滯留於車柱上無法騎乘之「無效故障車」；其二為營運維運團隊以調度貨車或人工方式進行之「批次車輛搬移」。
 
 在微觀時點 $\tau$（屬於巨觀決策時段 $s$ 與日曆日期 $d$），考量 YouBike 2.0 與 2.0E 電輔車共用相同之車柱與扣款介面，對校園通勤者具備高度服務替代性，且 2024 年前 10 個月之票證資料未區分車種。站點 $i$ 於開放資料平台所回傳之帳面可借單車總數 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$，在物理上由「真實有效可用單車總數 $B^{\text{eff}}_{i,\tau}$」與「長期滯留無效沉澱車數 $D_{i,d}$（涵蓋機械故障車與低電量鎖定車輛）」所共同組成：
-\begin{align*}
+\begin{align}
 I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d}
-\end{align*}
+\end{align}
 與此同時，相鄰微觀時點間之帳面庫存變動量 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$，則同時受自然借車量 $Y^+_{i,\tau}$、自然還車量 $Y^-_{i,\tau}$、調度補入量 $R^{\text{in}}_{i,\tau}$ 與調度移出量 $R^{\text{out}}_{i,\tau}$ 之交互驅動：
-\begin{align*}
+\begin{align}
 \Delta I_{i,\tau} &= Y^-_{i,\tau} - Y^+_{i,\tau} + R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}
-\end{align*}
+\end{align}
 
 由於官方開放資料並未提供車柱硬體報修紀錄與調度貨車之派工明細，$D_{i,d}$ 與 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 在計量模型中皆屬於不可觀測之潛在干擾變數。傳統文獻多仰賴研究者主觀設定之經驗啟發式門檻（例如假設車輛連續滯留超過特定時數即判定為故障車，或設定固定之單分鐘庫存跳躍門檻 $\theta_{\text{rebal}}$ 以切割調度事件）。然而，此類硬性推估極易在離峰時段將正常閒置車輛誤判為故障車，或在換堂尖峰將密集自然借還誤判為卡車調度，進而引入嚴重的測量誤差與內生性偏誤。
 
@@ -98,27 +98,27 @@ I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d}
 \subsection{局部庫存波谷之物理下界包絡性質}\label{subsec:trough_envelope}
 
 考慮站點 $i$ 於觀測時段 $s$ 內之微觀快照時間集合 $\mathcal{T}_s$。定義該時段內站點帳面可借總車數之局部庫存波谷為 $b_{i,s}$：
-\begin{align*}
+\begin{align}
 b_{i,s} &\equiv \min_{\tau \in \mathcal{T}_s} I_{i,\tau}
-\end{align*}
+\end{align}
 依據實體單車之非負性條件，站點在任何微觀時點 $\tau$ 之真實有效可用單車總數必滿足 $B^{\text{eff}}_{i,\tau} \ge 0$。將此非負約束代入庫存分解式，可知在任意時點 $\tau \in \mathcal{T}_s$，帳面可借總車數恆大於或等於無效沉澱車數：
-\begin{align*}
+\begin{align}
 I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d} \ge 0 + D_{i,d} = D_{i,d}, \quad \forall\ \tau \in \mathcal{T}_s
-\end{align*}
+\end{align}
 由於上述不等式對時段 $\mathcal{T}_s$ 內所有時間點皆成立，故對全時段取下確界（最小值）後，局部庫存波谷 $b_{i,s}$ 在物理上必然構成無效沉澱車數 $D_{i,d}$ 之上界包絡：
-\begin{align*}
+\begin{empheq}[box=\fbox]{align}
 b_{i,s} &= \min_{\tau \in \mathcal{T}_s} I_{i,\tau} \ge D_{i,d}
-\end{align*}
+\end{empheq}
 此一物理守恆性質表明：在無維運人員介入修復前，站點內無法被騎乘之無效車數絕不可能超越該時段觀測到之最低庫存水位。
 
 基於此包絡性質，本研究定義時段 $s$ 內站點 $i$ 之「有效借車暴露時間集合」$\mathcal{T}^+_{i,s}$ 為帳面總庫存嚴格高於局部波谷、或該分鐘內確有發生合法借車刷卡交易之微觀時點聯集：
-\begin{align*}
+\begin{empheq}[box=\fbox]{align}
 \mathcal{T}^+_{i,s} &\equiv \left\{ \tau \in \mathcal{T}_s \;\middle|\; I_{i,\tau} > b_{i,s} \;\lor\; Y^+_{i,\tau} > 0 \right\}
-\end{align*}
+\end{empheq}
 當 $I_{i,\tau} > b_{i,s}$ 時，因車輛計數為離散整數，必有 $I_{i,\tau} \ge b_{i,s} + 1$。結合包絡不等式 $b_{i,s} \ge D_{i,d}$，即可確保站點在該時點之真實有效可用單車總數嚴格大於或等於 $1$：
-\begin{align*}
+\begin{align}
 B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b_{i,s} = 1
-\end{align*}
+\end{align}
 是以，在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 涵蓋之每一分鐘內，站點在物理上恆處於「至少存在一輛正常好車可供借出」之非截斷狀態。
 
 \subsection{現場營運交互狀況之穩健性檢驗}
@@ -127,33 +127,33 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 
 \begin{enumerate}
     \item \textbf{狀況一：維運移出與自然還車交錯（$R^{\text{out}}_{i,\tau} = 1, \, Y^-_{i,\tau} = 1$）}
-    \begin{align*}
+    \begin{align}
     \Delta I_{i,\tau} &= \left(Y^-_{i,\tau} - Y^+_{i,\tau}\right) + \left(R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}\right) = (1 - 0) + (0 - 1) = 0, \qquad Y^+_{i,\tau} = 0
-    \end{align*}
+    \end{align}
     維運拉車（$-1$）與民眾還車（$+1$）一加一減相互抵銷，帳面車數不變（$I_{i,\tau} = I_{i,\tau-1}$）。還車僅計入 $Y^-_{i,s}$ 而不觸動借車分子 $Y^+_{i,s}$，分母暴露狀態亦維持原狀，故不影響 $\hat{\lambda}_{i,s}$。
 
     \item \textbf{狀況二：維運補入與自然借車交錯（$R^{\text{in}}_{i,\tau} = 1, \, Y^+_{i,\tau} = 1$）}
-    \begin{align*}
+    \begin{align}
     \Delta I_{i,\tau} &= (0 - 1) + (1 - 0) = 0, \qquad Y^+_{i,\tau} = 1 > 0 \;\Rightarrow\; \tau \in \mathcal{T}^+_{i,s}
-    \end{align*}
+    \end{align}
     波谷狀態（$I_{i,\tau-1} = b_{i,s}$）下維運補車（$+1$）並即刻被民眾借走（$-1$），快照車數雖因一加一減抵銷而停留於 $b_{i,s}$，但刷卡交易記錄 $Y^+_{i,\tau} = 1$（分子 $+1$），同時觸發聯集條件將該分鐘納入 $\mathcal{T}^+_{i,s}$（分母 $+1$），分子與分母同步對齊。
 
     \item \textbf{狀況三：故障與低電量無效車長期滯留（$B^{\text{eff}}_{i,\tau} = 0, \, I_{i,\tau} = D_{i,d}$）}
-    \begin{align*}
+    \begin{align}
     I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d} = D_{i,d} = b_{i,s}, \qquad Y^+_{i,\tau} = 0 \;\Rightarrow\; \tau \notin \mathcal{T}^+_{i,s}
-    \end{align*}
+    \end{align}
     正常車耗盡後僅存 $D_{i,d}$ 輛沉澱車滯留，帳面車數收斂於波谷 $b_{i,s}$ 且無借出交易（$Y^+_{i,\tau} = 0$），波谷遮罩自動將該段期間自有效暴露時間 $\text{Exposure}^+_{i,s}$ 中剔除，不稀釋分母。
 
     \item \textbf{狀況四：貨車批次大量補車或移車（$R^{\text{in}}_{i,\tau} \gg 0$ 或 $R^{\text{out}}_{i,\tau} \gg 0$）}
-    \begin{align*}
+    \begin{align}
     \Delta I_{i,\tau} &= R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}, \qquad Y^+_{i,\tau} = 0, \qquad \mathbb{I}\left(\tau \in \mathcal{T}^+_{i,s}\right) = \mathbb{I}\left(I_{i,\tau} > b_{i,s}\right)
-    \end{align*}
+    \end{align}
     工程調度不經由民眾扣款系統，分子 $Y^+_{i,s}$ 不混入調度移出量；分母則隨快照車數 $I_{i,\tau}$ 即時反映站點有車可借之時長變化，故巨量調度跳躍不干擾單位時間借車率。
 
     \item \textbf{狀況五：自然尖峰需求借光導致空站截斷（$B^{\text{eff}}_{i,\tau} = 0 \Rightarrow I_{i,\tau} = b_{i,s}$）}
-    \begin{align*}
+    \begin{align}
     \text{Exposure}^+_{i,s} &= \Delta t_s - \sum_{\tau \in \mathcal{T}_s} \mathbb{I}\left(I_{i,\tau} = b_{i,s} \;\land\; Y^+_{i,\tau} = 0\right) = \Delta t_s - \text{EmptyMin}_{i,s}
-    \end{align*}
+    \end{align}
     尖峰需求將正常車借光後跌入波谷 $b_{i,s}$，斷貨期間之缺車分鐘數 $\text{EmptyMin}_{i,s}$ 自動自總時長 $\Delta t_s$ 中扣除，僅以斷貨前實質有車期間之借車數與暴露時間相除，消除截斷偏誤。
 \end{enumerate}
 
@@ -189,57 +189,61 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 為將上述五種營運狀況之零誤差特性予以一般化，本節建立嚴格之計量統計證明，推導暴露量校正需求率估計量之無偏性與對未知干擾參數之不變性。
 
 設站點 $i$ 於時段 $s$（總時長 $\Delta t_s$）內，使用者之潛在無約束借車抵達行為服從強度為 $\lambda_{i,s}$ 之齊次 Poisson 點過程 $\{N_{i,s}(t), t \in [0, \Delta t_s]\}$，其無窮小時間增量 $dt$ 內之期望抵達數滿足：
-\begin{align*}
+\begin{align}
 E\left[dN_{i,s}(t)\right] &= \lambda_{i,s} \, dt
-\end{align*}
+\end{align}
 令 $dY^+_{i,s}(t)$ 為電子票證租借資料庫在時點 $t$ 實際記錄到之借車交易增量。由於維運人員之貨車調度作業 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 不產生票證刷卡紀錄，且潛在使用者抵達站點時，唯有當站內存在至少 $1$ 輛真實有效可用單車（即 $B^{\text{eff}}_{i,t} = I_{i,t} - D_{i,d} \ge 1$）時方能成功完成借車交易，故觀測借車過程與潛在抵達過程之結構關係式可嚴格寫為：
-\begin{align*}
+\begin{align}
 dY^+_{i,s}(t) &= \mathbb{I}\left(I_{i,t} - D_{i,d} \ge 1\right) \cdot dN_{i,s}(t)
-\end{align*}
+\end{align}
 其中 $\mathbb{I}(\cdot)$ 為指示函數。
 
 現透過波谷遮罩將觀測時間軸限制於有效暴露時間集合 $\mathcal{T}^+_{i,s}$。由第~\ref{subsec:trough_envelope}~節之物理下界包絡性質 $b_{i,s} \ge D_{i,d}$ 可知，$\forall\ t \in \mathcal{T}^+_{i,s}$，站點真實有效可用單車數恆滿足 $I_{i,t} - D_{i,d} \ge 1$，是以指示函數在 $\mathcal{T}^+_{i,s}$ 上恆等於 $1$：
-\begin{align*}
+\begin{align}
 \mathbb{I}\left(I_{i,t} - D_{i,d} \ge 1\right) &= 1, \quad \forall\ t \in \mathcal{T}^+_{i,s}
-\end{align*}
+\end{align}
 對有效暴露集合 $\mathcal{T}^+_{i,s}$ 進行積分，即可得時段 $s$ 內之觀測借車總次數 $Y^+_{i,s}$：
-\begin{align*}
+\begin{align}
 Y^+_{i,s} &= \int_{t \in \mathcal{T}^+_{i,s}} dY^+_{i,s}(t) = \int_{t \in \mathcal{T}^+_{i,s}} 1 \cdot dN_{i,s}(t) = \int_{t \in \mathcal{T}^+_{i,s}} dN_{i,s}(t)
-\end{align*}
+\end{align}
 給定有效暴露時間集合 $\mathcal{T}^+_{i,s}$（其總測度即為有效暴露分鐘數 $\text{Exposure}^+_{i,s} = \int_{t \in \mathcal{T}^+_{i,s}} 1 \, dt = \Delta t_s - \text{EmptyMin}_{i,s}$）、潛在故障車數 $D_{i,d}$ 與調度跳躍量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$，根據隨機積分之線性期望性質求取 $Y^+_{i,s}$ 之條件期望值：
-\begin{align*}
+\begin{align}
 E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \int_{t \in \mathcal{T}^+_{i,s}} E\left[dN_{i,s}(t)\right] = \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s} \, dt = \lambda_{i,s} \cdot \text{Exposure}^+_{i,s}
-\end{align*}
+\end{align}
 由此定義站點 $i$ 於時段 $s$ 之真實潛在借車率估計量 $\hat{\lambda}_{i,s}$ 為：
-\begin{align*}
+\begin{empheq}[box=\fbox]{align}
 \hat{\lambda}_{i,s} &= \frac{Y^+_{i,s}}{\text{Exposure}^+_{i,s}}
-\end{align*}
+\end{empheq}
 當 $\text{Exposure}^+_{i,s} > 0$ 時，對該估計量取條件期望值：
-\begin{align*}
-E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \frac{E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right]}{\text{Exposure}^+_{i,s}} \\
+\begin{align}
+E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \frac{E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right]}{\text{Exposure}^+_{i,s}} \nonumber \\
 &= \frac{\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}}{\text{Exposure}^+_{i,s}} = \lambda_{i,s}
-\end{align*}
+\end{align}
 進而計算估計量之統計偏誤：
-\begin{align*}
+\begin{align}
 \text{Bias}\left(\hat{\lambda}_{i,s}\right) &= E\left[\hat{\lambda}_{i,s}\right] - \lambda_{i,s} = \lambda_{i,s} - \lambda_{i,s} = 0
-\end{align*}
+\end{align}
 同時，對不可觀測之故障車數 $D_{i,d}$ 及人為調度跳躍量 $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$ 取偏導數，可得：
-\begin{align*}
+\begin{empheq}[box=\fbox]{align}
 \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{in}}_{i,s}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{out}}_{i,s}} = 0 \tag*{\text{$\blacksquare$}}
-\end{align*}
+\end{empheq}
 
 同理，在還車需求端，使用者歸還單車僅受限於站點是否有空車柱可供停入（即空柱數 $O_{i,\tau} \ge 1$），完全不受車柱上既有單車為正常車或故障車之影響。定義有效還車暴露時間 $\text{Exposure}^-_{i,s} = \Delta t_s - \text{FullMin}_{i,s}$（其中 $\text{FullMin}_{i,s}$ 為時段 $s$ 內 $O_{i,\tau} = 0$ 之滿站分鐘數），並以票證資料庫記錄之實際還車次數 $Y^-_{i,s}$ 除以有效還車暴露時間，即可對稱獲得零誤差之真實潛在還車率估計量：
-\begin{align*}
+\begin{empheq}[box=\fbox]{align}
 \hat{\mu}_{i,s} &= \frac{Y^-_{i,s}}{\text{Exposure}^-_{i,s}}, \qquad E\left[\hat{\mu}_{i,s}\right] = \mu_{i,s}
-\end{align*}
+\end{empheq}
 
 \subsection{實證估算之最小充分統計量與干擾參數消除}
 
 依據機率統計中之 Neyman-Fisher 因子分解定理，在給定有效暴露集合 $\mathcal{T}^+_{i,s}$ 下，由於觀測借車次數服從參數為 $\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}$ 之計數分佈，其對數概似函數僅透過觀測交易總數 $Y^+_{i,s}$ 與有效暴露時間 $\text{Exposure}^+_{i,s}$ 依賴於樣本資料：
-\begin{align*}
+\begin{equation}
+\boxed{
+\begin{aligned}
 \ln \mathcal{L}\left(\lambda_{i,s} \;\middle|\; Y^+_{i,s}, \text{Exposure}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right) &= Y^+_{i,s} \ln\left(\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}\right) \\
 &\quad - \lambda_{i,s} \cdot \text{Exposure}^+_{i,s} - \ln\left(Y^+_{i,s}!\right)
-\end{align*}
+\end{aligned}
+}
+\end{equation}
 此一數學結構嚴格證明：二元數據配對 $\left(Y^+_{i,s}, \text{Exposure}^+_{i,s}\right)$ 與 $\left(Y^-_{i,s}, \text{Exposure}^-_{i,s}\right)$ 即為識別真實借還需求率 $\left(\lambda_{i,s}, \mu_{i,s}\right)$ 之「最小充分統計量」。
 
 基於上述不變性與充分性證明，本研究在實證資料處理管線中，實現了對不可觀測干擾參數之完全消除：
