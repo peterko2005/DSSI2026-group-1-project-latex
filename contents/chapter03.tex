@@ -89,23 +89,23 @@
 
 \section{時變借還率預測模型}
 
-\subsection{無效庫存與調度事件識別剝離}
+\subsection{無效庫存與調度事件之理論消除}\label{subsec:nuisance_elimination_ch03}
 
-在 TDX 開放資料平台中，站點所回傳之即時車輛數包含兩項干擾自然借還行為之非隨機雜訊：其一為長期損壞鎖死於車柱上之「故障無效車」；其二為營運維運團隊以貨車進行之批次人為搬移。若未預先剔除該兩項干擾，將導致借還需求之估計產生嚴重系統性偏差。
+在 TDX 開放資料平台中，站點所回傳之即時車輛數包含兩項干擾自然借還行為之非隨機雜訊：其一為長期損壞鎖死於車柱上之「故障無效車」$D_{i,d}$（涵蓋機械故障與低電量鎖定車輛）；其二為營運維運團隊以貨車進行之批次人為搬移 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$。傳統文獻多仰賴主觀經驗門檻（例如硬性設定單分鐘庫存跳躍門檻 $\theta_{\text{rebal}}$ 以切割調度，或假設連續閒置數小時即判定為故障車）。然而，如第~\ref{sec:data_sources}~節之微觀步長實證分析所示，在單小時車輛淨變動達 $|\Delta I| \ge 25$ 輛之劇烈時段中，高達 $81.5\%$ 純屬換堂尖峰高頻自然借還之連續累積；若依傳統做法粗暴剝離，將對尖峰真實需求造成嚴重誤殺。
 
-本研究依據文獻方法建立兩階段資料解構過濾器（Data Deconstruction Filter）：
+為徹底解決此一識別困境，本模型並非透過主觀門檻對原始快照進行經驗式過濾，而是直接承接第~\ref{chap:Data & Latent Demand Reconstruction}~章所推導之「局部庫存波谷包絡」與「最小充分統計量」架構：
 \begin{enumerate}
-    \item \textbf{故障無效車識別與剔除}：在日間校園借還頻繁之尖峰時段\textcolor{red}{（如 08:00--18:00）}，若特定車柱或車輛之車機狀態連續數小時無動態更新，且周圍車輛頻繁借還而該車始終滯留，則將其標記為故障無效車 $D_{i,d}$（涵蓋機械故障與低電量鎖定車輛）。考量一般車與電輔車具備完全服務替代性，時點 $\tau$ 站點 $i$ 之真實有效可用單車總數 $B^{\text{eff}}_{i,\tau}$ 修正為：
+    \item \textbf{局部庫存波谷之物理下界包絡}：考量一般車與電輔車對校園通勤者具備完全服務替代性，時點 $\tau$ 站點 $i$ 之帳面可租借總車數為 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$。由第~\ref{subsec:trough_envelope}~節之物理下界包絡定理可知，時段 $s$ 內之局部最低庫存 $b_{i,s} = \min_{\tau \in \mathcal{T}_s} I_{i,\tau}$ 在物理上必然構成無效沉澱車數 $D_{i,d}$ 之上界（$b_{i,s} \ge D_{i,d}$）。是以，真實有效可用單車總數滿足：
     \begin{align}
     B^{\text{eff}}_{i,\tau} &= \max\left\{0, \, I_{i,\tau} - D_{i,d}\right\}
     \end{align}
-    其中 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$ 為即時帳面可租借單車總數。
-    \item \textbf{\textcolor{red}{卡車調度跳躍資料剝離}}：計算 1 分鐘相鄰快照之總庫存差分 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$。若單分鐘內之庫存變化量 $|\Delta I_{i,\tau}|$ 超過自然騎乘對帳門檻 $\theta_{\text{rebal}}$（例如單分鐘車數突增或突減超過 \textcolor{red}{4} 輛，且無對應之校園 OD 旅次抵達），則判定為調度卡車之補車作業 $R^{\text{in}}_{i,\tau}$ 或移車作業 $R^{\text{out}}_{i,\tau}$：
+    當 $I_{i,\tau} > b_{i,s}$ 時，必有 $B^{\text{eff}}_{i,\tau} \ge 1$ 輛好車可供騎乘；而當帳面車數跌入波谷且無借車交易時，該段無效滯留時間將被自動自暴露時長中剔除，無須主觀估計個別車輛是否故障。
+
+    \item \textbf{調度跳躍干擾之統計不變性}：如第~\ref{sec:latent_demand_identification}~節與表~\ref{tab:red_team_scenarios}~所嚴格證明，維運貨車之批次調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 係工程作業，不產生民眾電子票證之刷卡交易流水。是以，在票證記錄之借車次數 $Y^+_{i,s}$ 與還車次數 $Y^-_{i,s}$ 中，物理上已天然不包含卡車搬移量；且由 Neyman-Fisher 因子分解定理證明之偏導數恆為零：
     \begin{align}
-    R^{\text{in}}_{i,\tau} &= \max\left\{0, \, \Delta I_{i,\tau}\right\} \cdot \mathbb{I}\left(|\Delta I_{i,\tau}| \ge \theta_{\text{rebal}}\right) \\
-    R^{\text{out}}_{i,\tau} &= \max\left\{0, \, -\Delta I_{i,\tau}\right\} \cdot \mathbb{I}\left(|\Delta I_{i,\tau}| \ge \theta_{\text{rebal}}\right)
+    \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial R^{\text{in}}_{i,t}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial R^{\text{out}}_{i,t}} = 0
     \end{align}
-    自然借車與還車觀測量 $Y^+_{i,s}, Y^-_{i,s}$ 則僅累計扣除調度跳躍後之純自然交易流水。
+    此一性質保證了：後續時變計數模型所輸入之二元數據配對 $\left(Y^+_{i,s}, \text{Exposure}^+_{i,s}\right)$ 與 $\left(Y^-_{i,s}, \text{Exposure}^-_{i,s}\right)$，即為完全消除故障車與人為調度等潛在干擾參數後之最小充分統計量，為本章之時變佇列推導奠定嚴格無偏之輸入基礎。
 \end{enumerate}
 
 \subsection{暴露量校正與鄰站溢出之截斷計數迴歸}
