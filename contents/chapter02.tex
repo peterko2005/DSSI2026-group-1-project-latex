@@ -123,7 +123,7 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 
 \subsection{現場營運交互狀況之穩健性檢驗}
 
-基於庫存差分平衡式 $\Delta I_{i,\tau} = (Y^-_{i,\tau} - Y^+_{i,\tau}) + (R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau})$ 與有效暴露集合 $\mathcal{T}^+_{i,s}$，以下檢驗五種現場營運狀況對需求率估計量 $\hat{\lambda}_{i,s} = Y^+_{i,s} / \text{Exposure}^+_{i,s}$ 之影響（各狀況於連續時間軸上之微觀軌跡與暴露判定範例詳見圖~\ref{fig:trough_exposure_example}）：
+基於庫存差分平衡式 $\Delta I_{i,\tau} = (Y^-_{i,\tau} - Y^+_{i,\tau}) + (R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau})$ 與有效暴露集合 $\mathcal{T}^+_{i,s}$，以下檢驗五種現場營運狀況對需求率估計量 $\hat{\lambda}_{i,s} = Y^+_{i,s} / \text{Exposure}^+_{i,s}$ 之影響：
 
 \begin{enumerate}
     \item \textbf{狀況一：維運移出與自然還車交錯（$R^{\text{out}}_{i,\tau} = 1, \, Y^-_{i,\tau} = 1$）}
@@ -182,13 +182,13 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 \end{tabular}
 \end{table}
 
-為具體說明上述五種現場營運狀況於同一時段內連續交錯發生時，局部波谷遮罩與票證對帳機制如何精確分離出有效暴露時間，以下結合圖~\ref{fig:trough_exposure_example} 舉出一涵蓋單一小時時段 $s$（$\Delta t_s = 60$ 分鐘，$\tau \in [0, 60]$）之綜合實務範例。設該站點車柱上實際滯留 $D_{i,d} = 2$ 輛不可觀測之故障車（官方資料未標記），期初帳面總車數為 $I_{i,0} = 6$ 輛（含 $4$ 輛正常可用車與 $2$ 輛故障車），全時段依序歷經三個階段：
+為具體說明上述五種現場營運狀況交錯發生時，模型如何自動分離出有效暴露時間，圖~\ref{fig:trough_exposure_example} 舉出一單一小時（$60$ 分鐘）之實務範例。設站內實際滯留 $2$ 輛未標記之故障車，期初帳面共 $6$ 輛車（$4$ 輛正常車、$2$ 輛故障車），全時段歷經三個階段：
 
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}[
     xscale=0.188,
-    yscale=0.41,
+    yscale=0.39,
     >=Stealth,
     callout/.style={
         draw=#1!75!black,
@@ -196,38 +196,36 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
         rounded corners=2pt,
         inner sep=2.2pt,
         font=\scriptsize,
-        align=left,
+        align=center,
         line width=0.5pt
     }
 ]
     % === 1. 背景分區（上層：安全供車區 vs 故障沉澱區） ===
-    % 安全區 (I > 2)
-    \fill[green!6!white] (0, 2) rectangle (60, 14.2);
-    % 故障車沉澱帶 (0 <= I <= 2)
+    \fill[green!6!white] (0, 2) rectangle (60, 14.0);
     \fill[gray!22] (0, 0) rectangle (60, 2);
 
     % 階段垂直分隔虛線
-    \draw[gray!55, dashed, line width=0.5pt] (15, -5.3) -- (15, 14.2);
-    \draw[gray!55, dashed, line width=0.5pt] (30, -5.3) -- (30, 14.2);
+    \draw[gray!55, dashed, line width=0.5pt] (15, -5.2) -- (15, 14.0);
+    \draw[gray!55, dashed, line width=0.5pt] (30, -5.2) -- (30, 14.0);
 
     % 頂部階段標記
-    \node[font=\scriptsize\bfseries, text=teal!65!black] at (7.5, 13.5) {階段 I：正常供車};
-    \node[font=\scriptsize\bfseries, text=red!75!black] at (22.5, 13.5) {階段 II：斷貨觸底};
-    \node[font=\scriptsize\bfseries, text=teal!65!black] at (45.0, 13.5) {階段 III：貨車調度與供車};
+    \node[font=\scriptsize\bfseries, text=teal!65!black] at (7.5, 13.3) {階段 I：正常供車};
+    \node[font=\scriptsize\bfseries, text=red!75!black] at (22.5, 13.3) {階段 II：斷貨觸底};
+    \node[font=\scriptsize\bfseries, text=teal!65!black] at (45.0, 13.3) {階段 III：貨車調度與供車};
 
     % 水平網格線
     \foreach \y in {4, 6, 8, 10, 12} {
         \draw[gray!22, line width=0.3pt] (0, \y) -- (60, \y);
     }
 
-    % 局部庫存波谷包絡線 b_{i,s} = 2
+    % 局部庫存波谷線
     \draw[red!80!black, dashed, line width=1.1pt] (0, 2) -- (60, 2);
-    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=red!80!black, anchor=south east] at (59.5, 2.15) {局部波谷包絡線 $b_{i,s} = \min_{\tau} I_{i,\tau} = 2 \ge D_{i,d}$};
+    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=red!80!black, anchor=south east] at (59.5, 2.15) {局部波谷線（$2$ 輛）};
 
     % 狀況三：底層故障車標記
-    \node[font=\scriptsize\bfseries, text=gray!35!black] at (30, 1.0) {【狀況三】不可觀測之故障沉澱車底層（$D_{i,d} = 2$ 輛長期滯留車柱，無法借出但帳面恆 $\ge 2$）};
+    \node[font=\scriptsize\bfseries, text=gray!35!black] at (30, 1.0) {\textbf{狀況三}：$2$ 輛故障車長期滯留（無法借出）};
 
-    % === 2. 帳面庫存微觀軌跡 I_{i,\tau} ===
+    % === 2. 帳面庫存軌跡 ===
     \draw[blue!75!black, line width=1.35pt]
         (0,6) -- (2,6) -- (2,5) -- (4.5,5) -- (4.5,4) -- (6,4) -- (6,5)
         -- (9,5) -- (9,4) -- (12,4) -- (12,3) -- (14,3) -- (14,3.8) -- (15,3.8) -- (15,2)
@@ -237,122 +235,109 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
         -- (48,5) -- (50,5) -- (50,4) -- (52,4) -- (52,5) -- (54,5) -- (54,4)
         -- (56,4) -- (56,5) -- (58,5) -- (58,4) -- (60,4) -- (60,3.5);
 
-    % 特殊事件節點與箭頭標記（嚴格分區錯開，零重疊）
-    % (1) 狀況一：tau = 8 (左中區 x=0.8..21.0, y=7.0..9.2)
-    \filldraw[fill=teal!80!black, draw=white, line width=0.6pt] (8, 5) circle [x radius=0.45, y radius=0.21];
-    \node[callout=teal, anchor=south west] (c1) at (0.8, 7.0) {\textbf{【狀況一】$\tau=8$ 移出與還車抵銷}\\$R^{\text{out}}=1, Y^-=1 \Rightarrow \Delta I=0, Y^+=0$};
-    \draw[->, teal!75!black, line width=0.6pt] (8, 7.0) -- (8, 5.32);
+    % 單行精簡標註（無算式、零重疊）
+    % (1) 狀況一：tau = 8
+    \filldraw[fill=teal!80!black, draw=white, line width=0.6pt] (8, 5) circle [x radius=0.45, y radius=0.22];
+    \node[callout=teal, anchor=south west] (c1) at (1.0, 6.8) {\textbf{狀況一}：移車與還車抵銷};
+    \draw[->, teal!75!black, line width=0.6pt] (8, 6.8) -- (8, 5.32);
 
-    % (2) 狀況五：tau in (15, 30] 空站觸底 (中上區 x=8.6..29.3, y=9.9..12.1)
-    \node[callout=red, anchor=south east] (c5) at (29.3, 9.9) {\textbf{【狀況五】$\tau \in (15,30]$ 尖峰借光觸底}\\正常車耗盡 ($I=2$)，扣除 $14$ 分缺車期};
-    \draw[->, red!75!black, line width=0.6pt] (16.8, 9.9) -- (16.8, 2.22);
+    % (2) 狀況五：tau in (15, 30]
+    \node[callout=red, anchor=south east] (c5) at (29.2, 9.8) {\textbf{狀況五}：好車借光觸底（暫停計時）};
+    \draw[->, red!75!black, line width=0.6pt] (28.0, 9.8) -- (28.0, 2.22);
 
-    % (3) 狀況二：tau = 22 波谷補車即借 (中低區 x=10.5..29.3, y=4.4..6.6)
+    % (3) 狀況二：tau = 22
     \draw[orange!90!red, densely dotted, line width=0.9pt] (21.5, 2) -- (21.5, 3.1) -- (22.5, 3.1) -- (22.5, 2);
-    \filldraw[fill=orange!90!red, draw=white, line width=0.6pt] (22, 2) circle [x radius=0.50, y radius=0.23];
-    \node[callout=orange, anchor=south east] (c2) at (29.3, 4.4) {\textbf{【狀況二】$\tau=22$ 波谷瞬時補借}\\$R^{\text{in}}=1, Y^+=1 \Rightarrow$ 喚醒 $1$ 分暴露};
+    \filldraw[fill=orange!90!red, draw=white, line width=0.6pt] (22, 2) circle [x radius=0.50, y radius=0.24];
+    \node[callout=orange, anchor=south west] (c2) at (9.5, 4.4) {\textbf{狀況二}：波谷補車即借};
     \draw[->, orange!85!red, line width=0.6pt] (22, 4.4) -- (22, 2.35);
 
-    % (4) 狀況四：tau = 30 貨車補車 & tau = 48 貨車移車 (統一置於右上空白區 x=36.5..59.6, y=9.7..12.0)
+    % (4) 狀況四：tau = 30 補車 & tau = 48 移車
     \draw[->, purple!80!black, line width=1.6pt] (30, 2.2) -- (30, 11.8);
-    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=purple!80!black, anchor=west] at (30.4, 6.2) {$R^{\text{in}}_{i,30} = +10$};
+    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=purple!80!black, anchor=west] at (30.4, 6.8) {$+10$};
     \draw[->, purple!80!black, line width=1.6pt] (48, 8.8) -- (48, 5.2);
-    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=purple!80!black, anchor=west] at (48.4, 7.0) {$R^{\text{out}}_{i,48} = -4$};
-    \node[callout=purple, anchor=south east] (c4) at (59.6, 9.7) {\textbf{【狀況四】$\tau=30, 48$ 貨車調度}\\工程不刷卡 ($Y^+=0$)，暴露持續計時};
-    \draw[->, purple!75!black, line width=0.6pt] (c4.west) -- (30.4, 11.2);
-    \draw[->, purple!75!black, line width=0.6pt] (48, 9.7) -- (48, 9.05);
+    \node[fill=green!6!white, inner sep=1pt, font=\scriptsize\bfseries, text=purple!80!black, anchor=west] at (48.4, 7.0) {$-4$};
+    \node[callout=purple, anchor=south east] (c4) at (59.5, 10.5) {\textbf{狀況四}：貨車補車（$+10$）與移車（$-4$）};
+    \draw[->, purple!75!black, line width=0.6pt] (c4.west) -- (30.4, 11.3);
+    \draw[->, purple!75!black, line width=0.6pt] (48, 10.5) -- (48, 9.05);
 
     % 上層座標軸與刻度
     \draw[->, black, line width=0.8pt] (0, 0) -- (61.2, 0);
-    \draw[->, black, line width=0.8pt] (0, 0) -- (0, 14.6);
-    \node[font=\scriptsize\bfseries, anchor=south east] at (-0.2, 13.3) {帳面車數 $I_{i,\tau}$};
+    \draw[->, black, line width=0.8pt] (0, 0) -- (0, 14.4);
+    \node[font=\scriptsize\bfseries, anchor=south east] at (-0.2, 13.1) {帳面車數};
     \foreach \y in {0, 2, 4, 6, 8, 10, 12} {
         \draw[black, line width=0.6pt] (-0.4, \y) -- (0, \y);
         \node[font=\scriptsize, anchor=east] at (-0.45, \y) {$\y$};
     }
 
-    % === 3. 中層：電子票證借車刷卡事件 Y^+_{i,\tau} (分子計數器) ===
-    \node[font=\scriptsize\bfseries, anchor=east] at (-0.5, -1.8) {刷卡借車 $Y^+_{i,\tau}$};
-    \node[font=\scriptsize, text=gray!70!black, anchor=east] at (-0.5, -2.6) {（分子計數）};
-    \draw[gray!60, line width=0.5pt] (0, -2.2) -- (60, -2.2);
+    % === 3. 中層：刷卡借車（分子） ===
+    \node[font=\scriptsize\bfseries, anchor=east] at (-0.5, -1.75) {刷卡借車};
+    \node[font=\scriptsize, text=gray!70!black, anchor=east] at (-0.5, -2.55) {（分子）};
+    \draw[gray!60, line width=0.5pt] (0, -2.15) -- (60, -2.15);
 
-    % 階段 I 刷卡點 (6 次: tau = 2, 5, 10, 12, 15x2)
+    % 階段 I 刷卡點 (6 次)
     \foreach \t in {2, 5, 10, 12, 14.6, 15.3} {
-        \draw[blue!75!black, line width=1.1pt] (\t, -2.6) -- (\t, -1.75);
-        \fill[blue!75!black] (\t, -1.75) circle [x radius=0.30, y radius=0.14];
+        \draw[blue!75!black, line width=1.1pt] (\t, -2.55) -- (\t, -1.7);
+        \fill[blue!75!black] (\t, -1.7) circle [x radius=0.30, y radius=0.14];
     }
-    \node[font=\scriptsize, text=blue!75!black] at (7.5, -1.05) {借車 $Y^+=6$ 次};
+    \node[font=\scriptsize, text=blue!75!black] at (7.5, -1.0) {$6$ 次};
 
     % 階段 II 刷卡點 (1 次: tau = 22)
-    \draw[orange!90!red, line width=1.3pt] (22, -2.65) -- (22, -1.7);
-    \fill[orange!90!red] (22, -1.7) circle [x radius=0.38, y radius=0.18];
-    \node[font=\scriptsize\bfseries, text=orange!85!red] at (22.5, -1.05) {僅 $\tau=22$ 刷卡 $1$ 次};
+    \draw[orange!90!red, line width=1.3pt] (22, -2.6) -- (22, -1.65);
+    \fill[orange!90!red] (22, -1.65) circle [x radius=0.38, y radius=0.18];
+    \node[font=\scriptsize\bfseries, text=orange!85!red] at (22.5, -1.0) {$1$ 次};
 
-    % 階段 III 刷卡點 (11 次: tau = 33, 35.7, 36.3, 40, 45, 50, 53.7, 54.3, 57.7, 58.3, 60)
+    % 階段 III 刷卡點 (11 次)
     \foreach \t in {33, 35.7, 36.3, 40, 45, 50, 53.7, 54.3, 57.7, 58.3, 60} {
-        \draw[blue!75!black, line width=1.1pt] (\t, -2.6) -- (\t, -1.75);
-        \fill[blue!75!black] (\t, -1.75) circle [x radius=0.30, y radius=0.14];
+        \draw[blue!75!black, line width=1.1pt] (\t, -2.55) -- (\t, -1.7);
+        \fill[blue!75!black] (\t, -1.7) circle [x radius=0.30, y radius=0.14];
     }
-    \node[font=\scriptsize, text=blue!75!black] at (45.0, -1.05) {借車 $Y^+=11$ 次（$\tau=30,48$ 貨車不刷卡）};
+    \node[font=\scriptsize, text=blue!75!black] at (45.0, -1.0) {$11$ 次（貨車不刷卡）};
 
-    % === 4. 下層：有效借車暴露時間條帶 \mathcal{T}^+_{i,s} (分母計時器) ===
-    \node[font=\scriptsize\bfseries, anchor=east] at (-0.5, -3.9) {有效暴露 $\mathcal{T}^+_{i,s}$};
-    \node[font=\scriptsize, text=gray!70!black, anchor=east] at (-0.5, -4.7) {（分母計時）};
+    % === 4. 下層：有效暴露（分母） ===
+    \node[font=\scriptsize\bfseries, anchor=east] at (-0.5, -3.8) {有效暴露};
+    \node[font=\scriptsize, text=gray!70!black, anchor=east] at (-0.5, -4.6) {（分母）};
 
     % [0, 15] 有效暴露 (15 分)
-    \filldraw[fill=teal!65!green!75, draw=teal!50!black, line width=0.5pt] (0, -4.8) rectangle (15, -3.5);
-    \node[font=\scriptsize\bfseries, text=white] at (7.5, -4.15) {有效暴露 $15$ 分};
+    \filldraw[fill=teal!65!green!75, draw=teal!50!black, line width=0.5pt] (0, -4.7) rectangle (15, -3.45);
+    \node[font=\scriptsize\bfseries, text=white] at (7.5, -4.08) {有效暴露 $15$ 分};
 
     % (15, 21.5] 遮蔽 (6 分)
-    \filldraw[fill=gray!30, draw=gray!60!black, line width=0.5pt] (15, -4.8) rectangle (21.3, -3.5);
-    \node[font=\scriptsize, text=gray!30!black] at (18.15, -4.15) {遮蔽 $6$ 分};
+    \filldraw[fill=gray!30, draw=gray!60!black, line width=0.5pt] (15, -4.7) rectangle (21.3, -3.45);
+    \node[font=\scriptsize, text=gray!30!black] at (18.15, -4.08) {遮蔽 $6$ 分};
 
     % tau = 22 交易觸發 (1 分)
-    \filldraw[fill=orange!85!red, draw=orange!60!black, line width=0.5pt] (21.3, -4.8) rectangle (22.7, -3.5);
-    \draw[->, orange!85!red, line width=0.7pt] (22, -2.75) -- (22, -3.45);
+    \filldraw[fill=orange!85!red, draw=orange!60!black, line width=0.5pt] (21.3, -4.7) rectangle (22.7, -3.45);
+    \draw[->, orange!85!red, line width=0.7pt] (22, -2.7) -- (22, -3.4);
 
     % [22.5, 30] 遮蔽 (8 分)
-    \filldraw[fill=gray!30, draw=gray!60!black, line width=0.5pt] (22.7, -4.8) rectangle (30, -3.5);
-    \node[font=\scriptsize, text=gray!30!black] at (26.35, -4.15) {遮蔽 $8$ 分};
+    \filldraw[fill=gray!30, draw=gray!60!black, line width=0.5pt] (22.7, -4.7) rectangle (30, -3.45);
+    \node[font=\scriptsize, text=gray!30!black] at (26.35, -4.08) {遮蔽 $8$ 分};
 
     % (30, 60] 有效暴露 (30 分)
-    \filldraw[fill=teal!65!green!75, draw=teal!50!black, line width=0.5pt] (30, -4.8) rectangle (60, -3.5);
-    \node[font=\scriptsize\bfseries, text=white] at (45.0, -4.15) {有效暴露 $30$ 分 ($I_{i,\tau} > b_{i,s} = 2$)};
+    \filldraw[fill=teal!65!green!75, draw=teal!50!black, line width=0.5pt] (30, -4.7) rectangle (60, -3.45);
+    \node[font=\scriptsize\bfseries, text=white] at (45.0, -4.08) {有效暴露 $30$ 分};
 
     % 時間軸刻度 (底部)
-    \draw[->, black, line width=0.8pt] (0, -5.3) -- (61.2, -5.3);
-    \node[font=\scriptsize\bfseries, anchor=west] at (61.3, -5.3) {時間 $\tau$};
+    \draw[->, black, line width=0.8pt] (0, -5.2) -- (61.2, -5.2);
+    \node[font=\scriptsize\bfseries, anchor=west] at (61.3, -5.2) {時間（分）};
     \foreach \x in {0, 8, 15, 22, 30, 48, 60} {
-        \draw[black, line width=0.6pt] (\x, -5.3) -- (\x, -5.65);
-        \node[font=\scriptsize, anchor=north] at (\x, -5.65) {$\x$};
+        \draw[black, line width=0.6pt] (\x, -5.2) -- (\x, -5.55);
+        \node[font=\scriptsize, anchor=north] at (\x, -5.55) {$\x$};
     }
-
-    % === 5. 底部對照總結框 ===
-    \node[draw=teal!60!black, fill=teal!3!white, rounded corners=2pt, inner sep=4pt, text width=13.2cm, font=\scriptsize, align=left, line width=0.6pt, anchor=north] at (28.5, -6.5) {
-        $\bullet$ \textbf{傳統未校正法（誤認 $I_{i,\tau}>0$ 即有車可借）}：受 $D_{i,d}=2$ 輛故障車佔柱誤導，分母誤計為 $60$ 分鐘 $\Rightarrow \hat{\lambda}_{\text{naive}} = 18 / 60 = 0.300$ 輛/分（\textcolor{red!80!black}{\textbf{低估真實需求 $-23.3\%$}}）。\\[2pt]
-        $\bullet$ \textbf{本研究波谷遮罩對帳法（$I_{i,\tau}>b_{i,s} \lor Y^+_{i,\tau}>0$）}：分子僅計真實刷卡 $Y^+_{i,s} = 6+1+11 = 18$ 次；分母自動扣除 $14$ 分鐘滯底期並保留 $\tau=22$ 交易，精確提取 $\text{Exposure}^+_{i,s} = 15+1+30 = 46$ 分鐘 $\Rightarrow \hat{\lambda}_{i,s} = 18 / 46 \approx \mathbf{0.391}$ 輛/分（\textcolor{teal!60!black}{\textbf{對故障車與貨車調度完全免疫}}）。
-    };
 \end{tikzpicture}
-\caption{單一小時時段內微觀庫存軌跡 $I_{i,\tau}$、五大現場營運狀況與有效借車暴露時間 $\mathcal{T}^+_{i,s}$ 識別範例圖}
+\caption{單一小時時段內五大現場營運狀況與有效借車暴露時間識別範例}
 \label{fig:trough_exposure_example}
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{階段 I（$\tau \in (0, 15]$，共 $15$ 分鐘）——正常供車與維運抵銷（狀況一）}：
-    此期間民眾共刷卡借出 $6$ 輛車、自然歸還 $3$ 輛車。其中於 $\tau = 8$ 時發生\textbf{狀況一}：維運人員移出 $1$ 輛車（$R^{\text{out}}_{i,8} = 1$）且同分鐘內剛好有民眾歸還 $1$ 輛車（$Y^-_{i,8} = 1$），一加一減使帳面車數維持 $I_{i,8} = 5$（$\Delta I_{i,8} = 0$）。由於還車與調度皆不觸發借車扣款（$Y^+_{i,8} = 0$），借車分子不受污染；同時全段皆滿足 $I_{i,\tau} > 2$（或 $\tau = 15$ 具借車交易 $Y^+_{i,15} > 0$），故全段 $15$ 分鐘完整計入有效暴露時間。
+    \item \textbf{階段 I（$0\text{--}15$ 分）：正常供車與維運抵銷（狀況一）}。民眾共刷卡借出 $6$ 次；第 $8$ 分鐘維運移出 $1$ 輛與民眾歸還 $1$ 輛相互抵銷，因均不觸發借車刷卡而不影響分子，且車數恆高於波谷線（$2$ 輛），全段 $15$ 分鐘計入有效暴露。
 
-    \item \textbf{階段 II（$\tau \in (15, 30]$，共 $15$ 分鐘）——尖峰斷貨觸底（狀況三、五）與波谷瞬時補借（狀況二）}：
-    $\tau = 15$ 時站內 $4$ 輛正常車全數借光（$B^{\text{eff}}_{i,\tau} = 0$），僅剩 $D_{i,d} = 2$ 輛故障車滯留車柱，帳面庫存遂連續停滯於 $I_{i,\tau} = 2$。由此全時段觀測軌跡可直接定出局部庫存波谷為 $b_{i,s} = \min_{\tau \in [0,60]} I_{i,\tau} = 2 \ge D_{i,d}$。
-    \begin{enumerate}[label = \textbullet]
-        \item 在缺乏正常車之 $14$ 分鐘內（$\tau \in \{16,\dots,21\} \cup \{23,\dots,30\}$），發生\textbf{狀況三與狀況五}：帳面車數雖大於零（$I_{i,\tau} = 2 > 0$），但因觸及波谷 $I_{i,\tau} = b_{i,s}$ 且無借車交易（$Y^+_{i,\tau} = 0$），波谷遮罩自動判定站點處於實質空站狀態並暫停暴露計時（$\tau \notin \mathcal{T}^+_{i,s}$），避免將 $14$ 分鐘缺車期誤算入分母。
-        \item 於 $\tau = 22$ 時發生\textbf{狀況二}：維運人員補入 $1$ 輛正常車（$R^{\text{in}}_{i,22} = 1$），隨即於同一分鐘內被現場等候之民眾刷卡借走（$Y^+_{i,22} = 1$）。雖然分鐘末快照車數仍停留在波谷 $I_{i,22} = 2 + 1 - 1 = 2$（$\Delta I_{i,22} = 0$），但票證系統明確記錄 $Y^+_{i,22} = 1 > 0$，立即觸發聯集條件將 $\tau = 22$ 強制納入 $\mathcal{T}^+_{i,s}$，確保借車分子（$+1$ 次）與暴露分母（$+1$ 分鐘）精確對齊。
-    \end{enumerate}
+    \item \textbf{階段 II（$15\text{--}30$ 分）：好車借光觸底（狀況三、五）與波谷補借（狀況二）}。第 $15$ 分鐘正常車借光，帳面僅剩 $2$ 輛故障車滯留並形成全時段波谷線，系統自動判定無車可借並遮蔽 $14$ 分鐘缺車期；唯第 $22$ 分鐘補入 $1$ 輛車並立即被刷卡借走，雖分鐘末車數仍為 $2$，刷卡紀錄仍自動喚醒 $1$ 分鐘有效暴露。
 
-    \item \textbf{階段 III（$\tau \in (30, 60]$，共 $30$ 分鐘）——貨車批次補移車跳躍（狀況四）}：
-    $\tau = 30$ 時調度貨車進場批次補入 $10$ 輛車（$R^{\text{in}}_{i,30} = 10$），使帳面車數垂直跳升至 $12$ 輛；$\tau = 48$ 時另一貨車批次移出 $4$ 輛車（$R^{\text{out}}_{i,48} = 4$），車數由 $9$ 輛垂直降至 $5$ 輛。此 $30$ 分鐘內民眾共自然借出 $11$ 輛車、歸還 $6$ 輛車，期末庫存為 $I_{i,60} = 3$ 輛。由於工程貨車搬運不產生民眾刷卡紀錄（$Y^+_{i,30} = Y^+_{i,48} = 0$），借車分子完全不受 $+10$ 與 $-4$ 之巨量跳躍干擾；分母則因補車後庫存恆滿足 $I_{i,\tau} > b_{i,s} = 2$，重啟並連續計入 $30$ 分鐘有效暴露。
+    \item \textbf{階段 III（$30\text{--}60$ 分）：貨車批次調度（狀況四）}。第 $30$ 與 $48$ 分鐘貨車分別批次補入 $10$ 輛與移出 $4$ 輛，工程搬運不產生刷卡紀錄故不干擾分子（期間民眾自然借車 $11$ 次）；補車後車數維持於波谷線之上，完整計入 $30$ 分鐘有效暴露。
 \end{enumerate}
 
-綜觀圖~\ref{fig:trough_exposure_example} 之全時段對帳結果，票證系統累計之真實借車分子為 $Y^+_{i,s} = 6 + 1 + 11 = 18$ 次。若採用傳統未校正法（只要帳面 $I_{i,\tau} > 0$ 即視為有車可借），將因 $2$ 輛故障車全時段佔柱（$I_{i,\tau} \ge 2$）而誤判整整 $60$ 分鐘皆具備供車能力，算得嚴重下偏之借車率 $18 / 60 = 0.300$ 輛/分。反之，本研究所提之波谷遮罩對帳法完全無須事前得知故障車數 $D_{i,d} = 2$ 或貨車調度明細，即可透過可觀測波谷 $b_{i,s} = 2$ 自動剔除 $14$ 分鐘無效斷貨期，並藉由 $Y^+_{i,22} > 0$ 捕捉波谷瞬時補借交易，精確提取出 $\text{Exposure}^+_{i,s} = 15 + 1 + 30 = 46$ 分鐘之有效暴露時間，無偏還原出真實需求率 $\hat{\lambda}_{i,s} = 18 / 46 \approx 0.391$ 輛/分。
+綜觀全時段，真實刷卡借車共 $6 + 1 + 11 = 18$ 次。傳統做法因帳面車數恆大於零（$\ge 2$）而誤將 $60$ 分鐘全數計入分母，低估借車率為 $18 / 60 = 0.300$ 輛/分；本研究則自動扣除 $14$ 分鐘缺車期並保留第 $22$ 分鐘之瞬時交易，精確抓出 $15 + 1 + 30 = 46$ 分鐘有效暴露，還原真實需求率 $\hat{\lambda}_{i,s} = 18 / 46 \approx 0.391$ 輛/分。
 
 \section{截斷借還需求之還原}
 
