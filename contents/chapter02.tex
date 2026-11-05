@@ -211,9 +211,9 @@ Y^+_{i,s} &= \int_{t \in \mathcal{T}^+_{i,s}} dY^+_{i,s}(t) = \int_{t \in \mathc
 E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \int_{t \in \mathcal{T}^+_{i,s}} E\left[dN_{i,s}(t)\right] = \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s} \, dt = \lambda_{i,s} \cdot \text{Exposure}^+_{i,s}
 \end{align}
 由此定義站點 $i$ 於時段 $s$ 之真實潛在借車率估計量 $\hat{\lambda}_{i,s}$ 為：
-\begin{empheq}[box=\fbox]{align}
+\begin{align}
 \hat{\lambda}_{i,s} &= \frac{Y^+_{i,s}}{\text{Exposure}^+_{i,s}}
-\end{empheq}
+\end{align}
 當 $\text{Exposure}^+_{i,s} > 0$ 時，對該估計量取條件期望值：
 \begin{align}
 E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \frac{E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right]}{\text{Exposure}^+_{i,s}} \nonumber \\
@@ -224,14 +224,25 @@ E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{i
 \text{Bias}\left(\hat{\lambda}_{i,s}\right) &= E\left[\hat{\lambda}_{i,s}\right] - \lambda_{i,s} = \lambda_{i,s} - \lambda_{i,s} = 0
 \end{align}
 同時，對不可觀測之故障車數 $D_{i,d}$ 及人為調度跳躍量 $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$ 取偏導數，可得：
-\begin{empheq}[box=\fbox]{align}
-\frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{in}}_{i,s}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{out}}_{i,s}} = 0 \tag*{\text{$\blacksquare$}}
-\end{empheq}
+\begin{align}
+\frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{in}}_{i,s}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{out}}_{i,s}} = 0
+\end{align}
 
 同理，在還車需求端，使用者歸還單車僅受限於站點是否有空車柱可供停入（即空柱數 $O_{i,\tau} \ge 1$），完全不受車柱上既有單車為正常車或故障車之影響。定義有效還車暴露時間 $\text{Exposure}^-_{i,s} = \Delta t_s - \text{FullMin}_{i,s}$（其中 $\text{FullMin}_{i,s}$ 為時段 $s$ 內 $O_{i,\tau} = 0$ 之滿站分鐘數），並以票證資料庫記錄之實際還車次數 $Y^-_{i,s}$ 除以有效還車暴露時間，即可對稱獲得零誤差之真實潛在還車率估計量：
-\begin{empheq}[box=\fbox]{align}
+\begin{align}
 \hat{\mu}_{i,s} &= \frac{Y^-_{i,s}}{\text{Exposure}^-_{i,s}}, \qquad E\left[\hat{\mu}_{i,s}\right] = \mu_{i,s}
+\end{align}
+
+由上述嚴格之計量統計證明，我們可以得出以下核心結論：無論在借車端抑或還車端，只要將觀測時間軸限制於站點實質具備服務能力之有效暴露集合（有車可借之 $\mathcal{T}^+_{i,s}$ 與有柱可還之 $\mathcal{T}^-_{i,s}$），估計量即具備嚴格之統計無偏性（Unbiasedness）：
+\begin{empheq}[box=\fbox]{align}
+E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}\right] = \mu_{i,s}
 \end{empheq}
+更為本質的是，估計量之期望值對系統中不可觀測之故障沉澱車數 $D_{i,d}$ 及人為貨車調度量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$ 之偏導數恆等於零。此一數學性質在理論與實務上確立了三大關鍵特性：
+\begin{enumerate}
+    \item \textbf{干擾參數完全不變性（Exact Invariance）}：估計量之期望值嚴格獨立於故障車與卡車調度之存在與否，證明本方法在數學結構上天然免疫於現場營運雜訊，無須依賴文獻常見之主觀經驗門檻（如 $\theta_{\text{rebal}}$）進行人為修剪。
+    \item \textbf{微觀對帳零偏誤（Zero Accounting Bias）}：藉由波谷包絡與交易聯集條件，成功將工程搬運與自然交易進行物理隔離，使尖峰時段借車分子 $Y^+_{i,s}$ 與分母有效暴露時間 $\text{Exposure}^+_{i,s}$ 精確對齊，徹底消除因空站借不出車所造成的截斷偏誤。
+    \item \textbf{實證可計算性（Empirical Computability）}：實證研究者無須耗費龐大算力去「猜測」個別單車是否損壞或追蹤調度車輛軌跡，僅憑公開之刷卡流水與站點快照即可直接計算出真實無偏之借還需求率。\hfill$\blacksquare$
+\end{enumerate}
 
 \subsection{實證估算之最小充分統計量與干擾參數消除}
 
@@ -252,4 +263,3 @@ E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{i
     \item \textbf{理論保留但實證免算之干擾變數}：故障滯留車數 $D_{i,d}$ 與調度貨車補移車跳躍量 $\left(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right)$ 雖於理論模型中保留其符號以完整刻畫物理系統，但在求算真實需求率時，因其在概似函數與估計式中之偏導數恆為零，實證上完全無須編寫啟發式規則進行推估或剝離。
 \end{enumerate}
 此一設計不僅大幅簡化了巨量歷史資料之前處理運算複雜度，更重要的是從根源上杜絕了人為設定過濾門檻所造成的估計偏誤，為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章之時變計數迴歸與非齊次生滅佇列模型提供統計上嚴格無偏之真實需求輸入。
-
