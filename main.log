@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.12.19)  6 NOV 2026 01:34
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.12.19)  6 NOV 2026 01:48
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -1897,36 +1897,36 @@ Underfull \vbox (badness 1412) has occurred while \output is active []
 Underfull \vbox (badness 3612) has occurred while \output is active []
 
  [11]
-[12] [13]) (./contents/chapter03.tex [14]
-Chapter 3.
-[15
+[12] [13] [14]) (./contents/chapter03.tex [15] [16
 
 ]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [16]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [17]
+Chapter 3.
+[17]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [18]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [19]
-[20] [21] [22] [23]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [20]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [21]
+[22] [23] [24] [25]
 Underfull \vbox (badness 1502) has occurred while \output is active []
 
- [24]
-[25] [26] [27] [28]) (./contents/chapter04.tex [29] [30
+ [26]
+[27] [28] [29] [30]) (./contents/chapter04.tex [31] [32
 
 ]
 Chapter 4.
-) (./contents/chapter05.tex [31] [32
+) (./contents/chapter05.tex [33] [34
 
 ]
 Chapter 5.
-) [33] [34
+) [35] [36
 
 ] (./main.aux)
  ***********
@@ -1945,4 +1945,4 @@ Here is how much of TeX's memory you used:
  1348 hyphenation exceptions out of 8191
  99i,16n,131p,1011b,655s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (48 pages).
+Output written on main.pdf (50 pages).
