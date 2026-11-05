@@ -18,7 +18,7 @@
 \contentsline {subsection}{\numberline {2.2.3}現場營運交互狀況之穩健性檢驗}{10}{subsection.2.2.3}%
 \contentsline {section}{\numberline {2.3}截斷借還需求之還原}{13}{section.2.3}%
 \contentsline {subsection}{\numberline {2.3.1}真實需求率之無偏性與干擾參數不變性證明}{13}{subsection.2.3.1}%
-\contentsline {subsection}{\numberline {2.3.2}實證估算之最小充分統計量與干擾參數消除}{16}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.2}實證估算之最小充分統計量與干擾參數消除}{15}{subsection.2.3.2}%
 \contentsline {chapter}{\numberline {3}動態重平衡最佳化模型與演算法}{17}{chapter.3}%
 \contentsline {section}{\numberline {3.1}問題定義與符號系統}{17}{section.3.1}%
 \contentsline {subsection}{\numberline {3.1.1}實體情境與決策環境定義}{17}{subsection.3.1.1}%
