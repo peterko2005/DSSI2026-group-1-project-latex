@@ -21,7 +21,8 @@ TOP_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "")"
 IS_MONOREPO=false
 if [ -n "$TOP_DIR" ] && [ "$TOP_DIR" != "$PROPOSAL_DIR" ]; then
   IS_MONOREPO=true
-  REL_PATH="${PROPOSAL_DIR#$TOP_DIR/}"
+  REL_PATH="$(git rev-parse --show-prefix)"
+  REL_PATH="${REL_PATH%/}"
 fi
 
 case "$ACTION" in

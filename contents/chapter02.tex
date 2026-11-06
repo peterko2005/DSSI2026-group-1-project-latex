@@ -29,7 +29,7 @@
 \caption{研究採用之多源異質實證資料集規模與特徵彙整表}
 \label{tab:data_sources_summary}
 \small
-\setlength{\tabcolsep}{2.8pt}
+\setlength{\tabcolsep}{2.0pt}
 \begin{tabular}{@{} l c r r l @{}}
 \toprule
 \textbf{資料集名稱} & \textbf{期間} & \textbf{原始規模} & \textbf{研究區規模} & \textbf{時間解析度} \\
@@ -80,46 +80,45 @@
 
 \subsection{潛在無效庫存與人為調度之識別困境}
 
-在共享單車系統之實證研究中，欲由歷史營運資料還原使用者之真實潛在需求率，首要面臨之計量挑戰在於站點庫存快照與自然借還行為之間存在兩項不可觀測之非隨機干擾：其一為因機械故障而長期滯留於車柱上無法騎乘之「無效故障車」；其二為營運維運團隊以調度貨車或人工方式進行之「批次車輛搬移」。
+在共享單車系統之實證研究中，欲由歷史營運資料還原使用者於各時段之期望需求率，核心原則在於必須以「站點實質能夠發生借還交互之有效暴露時間」作為計量分母。然而，站點庫存快照與自然借還交互之間存在兩項不可觀測之非隨機干擾：其一為站點車數因觸及某一下界而無法繼續向下借出之「單邊截斷底線」；其二為營運維運團隊以調度貨車或人工方式進行之「批次車輛搬移」。
 
-在微觀時點 $\tau$（屬於巨觀決策時段 $s$ 與日曆日期 $d$），考量 YouBike 2.0 與 2.0E 電輔車共用相同之車柱與扣款介面，對校園通勤者具備高度服務替代性，且 2024 年前 10 個月之票證資料未區分車種。站點 $i$ 於開放資料平台所回傳之帳面可借單車總數 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$，在物理上由「真實有效可用單車總數 $B^{\text{eff}}_{i,\tau}$」與「長期滯留無效沉澱車數 $D_{i,d}$（涵蓋機械故障車與低電量鎖定車輛）」所共同組成：
+在微觀時點 $\tau$（屬於巨觀決策時段 $s$），考量 YouBike 2.0 與 2.0E 電輔車共用相同之車柱與扣款介面，且 2024 年前 10 個月之票證資料未區分車種，站點 $i$ 回傳之帳面可借單車總數 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$，在交互結構上可分解為「高於截斷底線之可交互車數 $B^{\text{eff}}_{i,\tau}$」與該時段內「無法完成向下借出交互之單邊截斷底線 $D_{i,s}$（涵蓋機械故障、低電量鎖定、車柱硬體受限或任何無法被借出之沉澱車數）」：
 \begin{align}
-I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d}
+I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,s}
 \end{align}
-與此同時，相鄰微觀時點間之帳面庫存變動量 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$，則同時受自然借車量 $Y^+_{i,\tau}$、自然還車量 $Y^-_{i,\tau}$、調度補入量 $R^{\text{in}}_{i,\tau}$ 與調度移出量 $R^{\text{out}}_{i,\tau}$ 之交互驅動：
+（此處重點並非個別單車在機械上是否完好，而在於當車數降至 $D_{i,s}$ 時，站點向下的借車交互即發生單邊截斷。）與此同時，相鄰微觀時點間之帳面庫存變動量 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$，則同時受自然借車量 $Y^+_{i,\tau}$、自然還車量 $Y^-_{i,\tau}$、調度補入量 $R^{\text{in}}_{i,\tau}$ 與調度移出量 $R^{\text{out}}_{i,\tau}$ 之交互驅動：
 \begin{align}
 \Delta I_{i,\tau} &= Y^-_{i,\tau} - Y^+_{i,\tau} + R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}
 \end{align}
 
-由於官方開放資料並未提供車柱硬體報修紀錄與調度貨車之派工明細，$D_{i,d}$ 與 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 在計量模型中皆屬於不可觀測之潛在干擾變數。傳統文獻多仰賴研究者主觀設定之經驗啟發式門檻（例如假設車輛連續滯留超過特定時數即判定為故障車，或設定固定之單分鐘庫存跳躍門檻 $\theta_{\text{rebal}}$ 以切割調度事件）。然而，此類硬性推估極易在離峰時段將正常閒置車輛誤判為故障車，或在換堂尖峰將密集自然借還誤判為卡車調度，進而引入嚴重的測量誤差與內生性偏誤。
+由於官方開放資料並未提供截斷底線明細與調度貨車之派工紀錄，$D_{i,s}$ 與 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 在計量模型中皆屬於不可觀測之潛在干擾變數。傳統文獻多仰賴研究者主觀設定之經驗啟發式門檻（例如假設車輛連續滯留超過特定時數即判定為故障車，或設定固定之單分鐘庫存跳躍門檻以切割調度事件）。然而，此類硬性推估極易在離峰時段將正常閒置車輛誤判為故障車，或在換堂尖峰將密集自然借還誤判為卡車調度，進而引入嚴重的測量誤差與內生性偏誤。
 
-為徹底解決上述識別困境，本研究提出「基於局部波谷遮罩之需求識別策略」。本研究在理論架構中完整保留 $D_{i,d}$ 與 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 之物理定義，但透過結合「電子票證租借交易流水」與「庫存快照局部波谷下界」，在數學上嚴格證明真實需求率估計量對此二潛在干擾變數具備完全不變性，從而無須對干擾變數進行主觀經驗推估即可獲得零誤差之真實需求還原。
+為徹底解決上述識別困境，本研究提出「基於局部波谷遮罩之需求識別策略」。本研究在理論架構中完整保留 $D_{i,s}$ 與 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 之物理定義，但透過結合「電子票證租借交易流水」與「庫存快照局部波谷下界」，在數學上嚴格證明真實需求率估計量對此二潛在干擾變數具備完全不變性，從而無須對干擾變數進行主觀經驗推估即可獲得零誤差之真實需求還原。
 
-\subsection{局部庫存波谷之物理下界包絡性質}\label{subsec:trough_envelope}
+\subsection{局部庫存波谷與單邊截斷之包絡性質}\label{subsec:trough_envelope}
 
 考慮站點 $i$ 於觀測時段 $s$ 內之微觀快照時間集合 $\mathcal{T}_s$。定義該時段內站點帳面可借總車數之局部庫存波谷為 $b_{i,s}$：
 \begin{align}
 b_{i,s} &\equiv \min_{\tau \in \mathcal{T}_s} I_{i,\tau}
 \end{align}
-依據實體單車之非負性條件，站點在任何微觀時點 $\tau$ 之真實有效可用單車總數必滿足 $B^{\text{eff}}_{i,\tau} \ge 0$。將此非負約束代入庫存分解式，可知在任意時點 $\tau \in \mathcal{T}_s$，帳面可借總車數恆大於或等於無效沉澱車數：
+依據可交互車數之非負性條件（$B^{\text{eff}}_{i,\tau} \ge 0$），站點在時段 $\mathcal{T}_s$ 內任意時點 $\tau$ 之帳面車數恆無法跌破該時段之單邊截斷底線 $D_{i,s}$：
 \begin{align}
-I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d} \ge 0 + D_{i,d} = D_{i,d}, \quad \forall\ \tau \in \mathcal{T}_s
+I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,s} \ge 0 + D_{i,s} = D_{i,s}, \quad \forall\ \tau \in \mathcal{T}_s
 \end{align}
-由於上述不等式對時段 $\mathcal{T}_s$ 內所有時間點皆成立，故對全時段取下確界（最小值）後，局部庫存波谷 $b_{i,s}$ 在物理上必然構成無效沉澱車數 $D_{i,d}$ 之上界包絡：
+對全時段取最小值後，局部庫存波谷 $b_{i,s}$ 必然構成單邊截斷底線 $D_{i,s}$ 之上界包絡：
 \begin{align}
-b_{i,s} &= \min_{\tau \in \mathcal{T}_s} I_{i,\tau} \ge D_{i,d}
+b_{i,s} &= \min_{\tau \in \mathcal{T}_s} I_{i,\tau} \ge D_{i,s}
 \end{align}
-此一物理守恆性質表明：在無維運人員介入修復前，站點內無法被騎乘之無效車數絕不可能超越該時段觀測到之最低庫存水位。
-
-基於此包絡性質，本研究定義時段 $s$ 內站點 $i$ 之「有效借車暴露時間集合」$\mathcal{T}^+_{i,s}$ 為帳面總庫存嚴格高於局部波谷、或該分鐘內確有發生合法借車刷卡交易之微觀時點聯集：
+此一軌跡性質具有直接的物理意義：既然站點車數在時段 $s$ 內實際曾經向下減少並觸達 $b_{i,s}$，代表任何高於 $b_{i,s}$ 之水位皆未受單邊截斷阻擋；反之，當車數觸底停留於 $b_{i,s}$ 且無借車交易發生時，向下的借車交互即處於單邊截斷狀態（無論柱上剩餘車輛本身是否完好，該觸底期間皆無向下交互發生，理應自有效暴露分母中移除）。
+基於此性質，本研究定義時段 $s$ 內站點 $i$ 之「真實可交互有效借車暴露時間集合」$\mathcal{T}^+_{i,s}$ 為帳面總庫存嚴格高於局部波谷、或該分鐘內確有發生合法借車刷卡交易之微觀時點聯集：
 \begin{align}
 \mathcal{T}^+_{i,s} &\equiv \left\{ \tau \in \mathcal{T}_s \;\middle|\; I_{i,\tau} > b_{i,s} \;\lor\; Y^+_{i,\tau} > 0 \right\}
 \end{align}
-當 $I_{i,\tau} > b_{i,s}$ 時，因車輛計數為離散整數，必有 $I_{i,\tau} \ge b_{i,s} + 1$。結合包絡不等式 $b_{i,s} \ge D_{i,d}$，即可確保站點在該時點之真實有效可用單車總數嚴格大於或等於 $1$：
+當 $I_{i,\tau} > b_{i,s}$ 時，因車輛計數為離散整數，必有 $I_{i,\tau} \ge b_{i,s} + 1$。結合包絡不等式 $b_{i,s} \ge D_{i,s}$，即可確保站點在該時點高於截斷底線之可交互車數嚴格大於或等於 $1$：
 \begin{align}
-B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b_{i,s} = 1
+B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b_{i,s} = 1
 \end{align}
-是以，在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 涵蓋之每一分鐘內，站點在物理上恆處於「至少存在一輛正常好車可供借出」之非截斷狀態。
+是以，在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 涵蓋之每一分鐘內，站點恆處於「未受單邊截斷、可實質進行借車交互」之有效狀態。
 
 \subsection{現場營運交互狀況之穩健性檢驗}
 
@@ -138,17 +137,17 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
     \end{align}
     波谷狀態（$I_{i,\tau-1} = b_{i,s}$）下維運補車（$+1$）並即刻被民眾借走（$-1$），快照車數雖因一加一減抵銷而停留於 $b_{i,s}$，但刷卡交易記錄 $Y^+_{i,\tau} = 1$（分子 $+1$），同時觸發聯集條件將該分鐘納入 $\mathcal{T}^+_{i,s}$（分母 $+1$），分子與分母同步對齊。
 
-    \item \textbf{狀況三：故障與低電量無效車長期滯留（$B^{\text{eff}}_{i,\tau} = 0, \, I_{i,\tau} = D_{i,d}$）}
+    \item \textbf{狀況三：故障與低電量無效車長期滯留（$B^{\text{eff}}_{i,\tau} = 0, \, I_{i,\tau} = D_{i,s}$）}
     \begin{align}
-    I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,d} = D_{i,d} = b_{i,s}, \qquad Y^+_{i,\tau} = 0 \;\Rightarrow\; \tau \notin \mathcal{T}^+_{i,s}
+    I_{i,\tau} &= B^{\text{eff}}_{i,\tau} + D_{i,s} = D_{i,s} = b_{i,s}, \qquad Y^+_{i,\tau} = 0 \;\Rightarrow\; \tau \notin \mathcal{T}^+_{i,s}
     \end{align}
-    正常車耗盡後僅存 $D_{i,d}$ 輛沉澱車滯留，帳面車數收斂於波谷 $b_{i,s}$ 且無借出交易（$Y^+_{i,\tau} = 0$），波谷遮罩自動將該段期間自有效暴露時間 $\text{Exposure}^+_{i,s}$ 中剔除，不稀釋分母。
+    正常車耗盡後僅存 $D_{i,s}$ 輛沉澱車滯留，帳面車數收斂於波谷 $b_{i,s}$ 且無借出交易（$Y^+_{i,\tau} = 0$），波谷遮罩自動將該段期間自有效暴露時間 $\text{Exposure}^+_{i,s}$ 中剔除，不稀釋分母。
 
     \item \textbf{狀況四：貨車批次大量補車或移車（$R^{\text{in}}_{i,\tau} \gg 0$ 或 $R^{\text{out}}_{i,\tau} \gg 0$）}
     \begin{align}
     \Delta I_{i,\tau} &= R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}, \qquad Y^+_{i,\tau} = 0, \qquad \mathbb{I}\left(\tau \in \mathcal{T}^+_{i,s}\right) = \mathbb{I}\left(I_{i,\tau} > b_{i,s}\right)
     \end{align}
-    工程調度不經由民眾扣款系統，分子 $Y^+_{i,s}$ 不混入調度移出量；分母則隨快照車數 $I_{i,\tau}$ 即時反映站點有車可借之時長變化，故巨量調度跳躍不干擾單位時間借車率。
+    即便調度作業橫跨數分鐘，工程搬運皆不經由民眾扣款系統，分子 $Y^+_{i,s}$ 不混入調度移出量；分母則隨快照車數 $I_{i,\tau}$ 即時反映站點有車可借之時長變化，故巨量調度跳躍不干擾單位時間借車率。
 
     \item \textbf{狀況五：自然尖峰需求借光導致空站截斷（$B^{\text{eff}}_{i,\tau} = 0 \Rightarrow I_{i,\tau} = b_{i,s}$）}
     \begin{align}
@@ -164,7 +163,7 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 \caption{現場營運狀況對分子、分母與真實需求率估計量之影響彙整表}
 \label{tab:red_team_scenarios}
 \small
-\setlength{\tabcolsep}{4.5pt}
+\setlength{\tabcolsep}{3.2pt}
 \begin{tabular}{@{} l l l c @{}}
 \toprule
 \textbf{營運狀況} & \textbf{分子 $Y^+_{i,s}$} & \textbf{分母 $\text{Exposure}^+_{i,s}$} & \textbf{偏誤 $\text{Bias}$} \\
@@ -228,12 +227,12 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
     % === 2. 帳面庫存軌跡 ===
     \draw[blue!75!black, line width=1.35pt]
         (0,6) -- (2,6) -- (2,5) -- (4.5,5) -- (4.5,4) -- (6,4) -- (6,5)
-        -- (9,5) -- (9,4) -- (12,4) -- (12,3) -- (14,3) -- (14,3.8) -- (15,3.8) -- (15,2)
+        -- (9,5) -- (9,4) -- (12,4) -- (12,3) -- (14,3) -- (14,4) -- (15,4) -- (15,2)
         -- (30,2)
-        -- (30,12) -- (31.8,12) -- (31.8,10.5) -- (33.8,10.5) -- (33.8,9) -- (39,9) -- (39,8)
+        -- (30,12) -- (31.8,12) -- (31.8,10) -- (33.8,10) -- (33.8,9) -- (39,9) -- (39,8)
         -- (41,8) -- (41,9) -- (45,9) -- (45,8) -- (47,8) -- (47,9) -- (48,9)
         -- (48,5) -- (50,5) -- (50,4) -- (52,4) -- (52,5) -- (54,5) -- (54,4)
-        -- (56,4) -- (56,5) -- (58,5) -- (58,4) -- (60,4) -- (60,3.5);
+        -- (56,4) -- (56,5) -- (58,5) -- (58,4) -- (60,4);
 
     % 單行精簡標註（無算式、零重疊）
     % (1) 狀況一：tau = 8
@@ -275,7 +274,7 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
     \draw[gray!60, line width=0.5pt] (0, -2.15) -- (60, -2.15);
 
     % 階段 I 刷卡點 (6 次)
-    \foreach \t in {2, 5, 10, 12, 14.6, 15.3} {
+    \foreach \t in {2, 5, 10, 12, 13.5, 14.8} {
         \draw[blue!75!black, line width=1.1pt] (\t, -2.55) -- (\t, -1.7);
         \fill[blue!75!black] (\t, -1.7) circle [x radius=0.30, y radius=0.14];
     }
@@ -339,6 +338,18 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 
 綜觀全時段，真實刷卡借車共 $6 + 1 + 11 = 18$ 次。傳統做法因帳面車數恆大於零（$\ge 2$）而誤將 $60$ 分鐘全數計入分母，低估借車率為 $18 / 60 = 0.300$ 輛/分；本研究則自動扣除 $14$ 分鐘缺車期並保留第 $22$ 分鐘之瞬時交易，精確抓出 $15 + 1 + 30 = 46$ 分鐘有效暴露，還原真實需求率 $\hat{\lambda}_{i,s} = 18 / 46 \approx 0.391$ 輛/分。
 
+\subsection{特殊邊界交互狀況之討論}\label{subsec:edge_case_interactions}
+
+除上述五種常態營運狀況外，針對實務現場極少數可能發生之特殊邊界交互，本識別架構之處置機制與大樣本性質說明如下：
+
+\begin{enumerate}
+    \item \textbf{\textcolor{red}{同站異常試借之秒借秒還}}：若少數異常車尚未被鎖定，民眾刷出後始察覺車況不佳並立即推回同站歸還，帳面上將成對產生一筆借車（$Y^+ + 1$）與一筆還車（$Y^- + 1$）。本研究無須人為設定主觀騎乘秒數門檻將其剔除：一方面，成對發生之同站借還在站點淨流量（$\lambda_{i,s} - \mu_{i,s}$）中一加一減自然抵銷，於跨站轉移矩陣中亦僅為原地自迴圈（$i \to i$），完全維持系統流量守恆；另一方面，即便發生於波谷，聯集條件僅喚醒該單一分鐘（其餘觸底分鐘仍維持遮蔽），且車柱具備短時歸還異常鎖定機制，於大樣本匯總下不影響估計結果。
+
+    \item \textbf{單一時段內截斷底線之階梯跳變}：波谷遮罩係假設單邊截斷底線 $D_{i,s}$ 於單一決策時段 $s$（15 或 60 分鐘）內維持局部平穩；若同一時段內先於低水位觸底，中途因壞車還入（或維運清運壞車）使截斷底線墊高（或降低）並再次觸底，單一水平波谷 $b_{i,s}$ 僅能捕捉較低之截斷水位。然而，車輛損壞與維修清運本身皆屬低頻率事件，在單一短時段內同時發生「先觸底、中途底線跳變、再二次觸底」之複合機率極低，於跨期大樣本匯總下屬可忽略之微小擾動。
+
+    \item \textbf{還車端車柱鎖定與分鐘網格之微觀時間差}：在還車端，由於車柱斷電或硬體鎖定時，TDX 回傳之可還空柱數 $O_{i,\tau}$ 已由系統自動即時扣減（詳見第~\ref{subsec:data_preprocessing_pipeline}~節，此與故障車仍停於柱上計入 $I_{i,\tau}$ 之硬體機制不同），故直接以 $O_{i,\tau} = 0$（搭配聯集條件 $Y^-_{i,\tau} > 0$）即可捕捉實質滿站截斷，無須另設空柱波谷；偶發之機械卡榫未觸發感測誤差，以及波谷或滿站「一進一出抵銷」在單分鐘內未滿 60 秒之微觀時間差，於全年大樣本網格匯總下皆自然平滑抵銷。
+\end{enumerate}
+
 \section{截斷借還需求之還原}
 
 \subsection{真實需求率之無偏性與干擾參數不變性證明}
@@ -349,55 +360,55 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,d} \ge \left(b_{i,s} + 1\right) - b
 \begin{align}
 E\left[dN_{i,s}(t)\right] &= \lambda_{i,s} \, dt
 \end{align}
-令 $dY^+_{i,s}(t)$ 為電子票證租借資料庫在時點 $t$ 實際記錄到之借車交易增量。由於維運人員之貨車調度作業 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 不產生票證刷卡紀錄，且潛在使用者抵達站點時，唯有當站內存在至少 $1$ 輛真實有效可用單車（即 $B^{\text{eff}}_{i,t} = I_{i,t} - D_{i,d} \ge 1$）時方能成功完成借車交易，故觀測借車過程與潛在抵達過程之結構關係式可嚴格寫為：
+令 $dY^+_{i,s}(t)$ 為電子票證租借資料庫在時點 $t$ 實際記錄到之借車交易增量。由於維運人員之貨車調度作業 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 不產生票證刷卡紀錄，且潛在使用者抵達站點時，唯有當站點處於未受單邊截斷之可交互狀態（即 $B^{\text{eff}}_{i,t^-} = I_{i,t^-} - D_{i,s} \ge 1$）時方能實際完成借車交互，故觀測借車過程與潛在抵達過程之結構關係式可嚴格寫為：
 \begin{align}
-dY^+_{i,s}(t) &= \mathbb{I}\left(I_{i,t} - D_{i,d} \ge 1\right) \cdot dN_{i,s}(t)
+dY^+_{i,s}(t) &= \mathbb{I}\left(I_{i,t^-} - D_{i,s} \ge 1\right) \cdot dN_{i,s}(t)
 \end{align}
 其中 $\mathbb{I}(\cdot)$ 為指示函數。
 
-現透過波谷遮罩將觀測時間軸限制於有效暴露時間集合 $\mathcal{T}^+_{i,s}$。由第~\ref{subsec:trough_envelope}~節之物理下界包絡性質 $b_{i,s} \ge D_{i,d}$ 可知，$\forall\ t \in \mathcal{T}^+_{i,s}$，站點真實有效可用單車數恆滿足 $I_{i,t} - D_{i,d} \ge 1$，是以指示函數在 $\mathcal{T}^+_{i,s}$ 上恆等於 $1$：
+現透過波谷遮罩將觀測時間軸限制於有效暴露時間集合 $\mathcal{T}^+_{i,s}$。由第~\ref{subsec:trough_envelope}~節之單邊截斷包絡性質 $b_{i,s} \ge D_{i,s}$ 可知，$\forall\ t \in \mathcal{T}^+_{i,s}$，站點可交互車數恆滿足 $I_{i,t^-} - D_{i,s} \ge 1$，是以指示函數在 $\mathcal{T}^+_{i,s}$ 上恆等於 $1$：
 \begin{align}
-\mathbb{I}\left(I_{i,t} - D_{i,d} \ge 1\right) &= 1, \quad \forall\ t \in \mathcal{T}^+_{i,s}
+\mathbb{I}\left(I_{i,t^-} - D_{i,s} \ge 1\right) &= 1, \quad \forall\ t \in \mathcal{T}^+_{i,s}
 \end{align}
 對有效暴露集合 $\mathcal{T}^+_{i,s}$ 進行積分，即可得時段 $s$ 內之觀測借車總次數 $Y^+_{i,s}$：
 \begin{align}
 Y^+_{i,s} &= \int_{t \in \mathcal{T}^+_{i,s}} dY^+_{i,s}(t) = \int_{t \in \mathcal{T}^+_{i,s}} 1 \cdot dN_{i,s}(t) = \int_{t \in \mathcal{T}^+_{i,s}} dN_{i,s}(t)
 \end{align}
-給定有效暴露時間集合 $\mathcal{T}^+_{i,s}$（其總測度即為有效暴露分鐘數 $\text{Exposure}^+_{i,s} = \int_{t \in \mathcal{T}^+_{i,s}} 1 \, dt = \Delta t_s - \text{EmptyMin}_{i,s}$）、潛在故障車數 $D_{i,d}$ 與調度跳躍量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$，根據隨機積分之線性期望性質求取 $Y^+_{i,s}$ 之條件期望值：
+給定有效暴露時間集合 $\mathcal{T}^+_{i,s}$（其總測度即為有效暴露分鐘數 $\text{Exposure}^+_{i,s} = \int_{t \in \mathcal{T}^+_{i,s}} 1 \, dt = \Delta t_s - \text{EmptyMin}_{i,s}$）、單邊截斷底線 $D_{i,s}$ 與調度跳躍量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$，根據隨機積分之線性期望性質求取 $Y^+_{i,s}$ 之條件期望值：
 \begin{align}
-E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \int_{t \in \mathcal{T}^+_{i,s}} E\left[dN_{i,s}(t)\right] = \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s} \, dt = \lambda_{i,s} \cdot \text{Exposure}^+_{i,s}
+E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,s}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \int_{t \in \mathcal{T}^+_{i,s}} E\left[dN_{i,s}(t)\right] = \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s} \, dt = \lambda_{i,s} \cdot \text{Exposure}^+_{i,s}
 \end{align}
 由此定義站點 $i$ 於時段 $s$ 之真實潛在借車率估計量 $\hat{\lambda}_{i,s}$ 為：
 \begin{align}
 \hat{\lambda}_{i,s} &= \frac{Y^+_{i,s}}{\text{Exposure}^+_{i,s}}
 \end{align}
-當 $\text{Exposure}^+_{i,s} > 0$ 時，對該估計量取條件期望值：
+當 $\text{Exposure}^+_{i,s} > 0$ 時，在給定有效暴露時間 $\mathcal{T}^+_{i,s}$（或於跨期大樣本匯總 $\sum Y^+_{i,s} / \sum \text{Exposure}^+_{i,s}$ 下由線性期望與大數法則求取極限）對該估計量取期望值，即可得無偏性與大樣本一致性：
 \begin{align}
-E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \frac{E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right]}{\text{Exposure}^+_{i,s}} \nonumber \\
+E\left[\hat{\lambda}_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,s}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right] &= \frac{E\left[Y^+_{i,s} \;\middle|\; \mathcal{T}^+_{i,s}, D_{i,s}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right]}{\text{Exposure}^+_{i,s}} \nonumber \\
 &= \frac{\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}}{\text{Exposure}^+_{i,s}} = \lambda_{i,s}
 \end{align}
 進而計算估計量之統計偏誤：
 \begin{align}
 \text{Bias}\left(\hat{\lambda}_{i,s}\right) &= E\left[\hat{\lambda}_{i,s}\right] - \lambda_{i,s} = \lambda_{i,s} - \lambda_{i,s} = 0
 \end{align}
-同時，對不可觀測之故障車數 $D_{i,d}$ 及人為調度跳躍量 $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$ 取偏導數，可得：
+同時，對不可觀測之單邊截斷底線 $D_{i,s}$ 及人為調度跳躍量 $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$ 取偏導數，可得：
 \begin{align}
-\frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{in}}_{i,s}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{out}}_{i,s}} = 0
+\frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial D_{i,s}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{in}}_{i,s}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,s}\right]}{\partial R^{\text{out}}_{i,s}} = 0
 \end{align}
 
-同理，在還車需求端，使用者歸還單車僅受限於站點是否有空車柱可供停入（即空柱數 $O_{i,\tau} \ge 1$），完全不受車柱上既有單車為正常車或故障車之影響。定義有效還車暴露時間 $\text{Exposure}^-_{i,s} = \Delta t_s - \text{FullMin}_{i,s}$（其中 $\text{FullMin}_{i,s}$ 為時段 $s$ 內 $O_{i,\tau} = 0$ 之滿站分鐘數），並以票證資料庫記錄之實際還車次數 $Y^-_{i,s}$ 除以有效還車暴露時間，即可對稱獲得零誤差之真實潛在還車率估計量：
+同理，在還車需求端，使用者歸還單車僅受限於站點是否處於滿站單邊截斷狀態（無空柱可還）。對稱定義有效還車暴露時間集合 $\mathcal{T}^-_{i,s} \equiv \{\tau \in \mathcal{T}_s \mid O_{i,\tau} > 0 \;\lor\; Y^-_{i,\tau} > 0\}$，其總測度為有效還車暴露分鐘數 $\text{Exposure}^-_{i,s} = \Delta t_s - \text{FullMin}_{i,s}$（其中 $\text{FullMin}_{i,s}$ 為時段 $s$ 內 $O_{i,\tau} = 0 \land Y^-_{i,\tau} = 0$ 之滿站截斷分鐘數），並以票證資料庫記錄之實際還車次數 $Y^-_{i,s}$ 除以有效還車暴露時間，即可對稱獲得真實潛在還車率估計量：
 \begin{align}
 \hat{\mu}_{i,s} &= \frac{Y^-_{i,s}}{\text{Exposure}^-_{i,s}}, \qquad E\left[\hat{\mu}_{i,s}\right] = \mu_{i,s}
 \end{align}
 
-由上述嚴格證明，我們可以得出以下核心結論：無論在借車端抑或還車端，只要將觀測時間軸限制於站點實質具備服務能力之有效暴露集合（有車可借之 $\mathcal{T}^+_{i,s}$ 與有柱可還之 $\mathcal{T}^-_{i,s}$），估計量即具備嚴格之統計無偏性：
+由上述嚴格證明，我們可以得出以下核心結論：無論在借車端抑或還車端，只要將觀測時間軸限制於站點實質具備交互能力之有效暴露集合（未受借車截斷之 $\mathcal{T}^+_{i,s}$ 與未受還車截斷之 $\mathcal{T}^-_{i,s}$），估計量即具備嚴格之統計無偏性與一致性：
 \begin{empheq}[box=\fbox]{align}
 E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}\right] = \mu_{i,s}
 \end{empheq}
-更為本質的是，估計量之期望值對系統中不可觀測之故障沉澱車數 $D_{i,d}$ 及人為貨車調度量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$ 之偏導數恆等於零。此一數學性質在理論與實務上確立了以下特性：
+更為本質的是，估計量之期望值對系統中不可觀測之單邊截斷底線 $D_{i,s}$ 及人為貨車調度量 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$ 之偏導數恆等於零。此一數學性質在理論與實務上確立了以下特性：
 \begin{enumerate}
-    \item \textbf{干擾參數完全不變性}：估計量之期望值嚴格獨立於故障車與卡車調度之存在與否，證明本方法在數學結構上不受現場營運雜訊影響，無須依賴文獻常見之主觀經驗門檻進行人為修剪。
-    \item \textbf{微觀對帳零偏誤}：藉由波谷包絡與交易聯集條件，成功將工程搬運與自然交易進行物理隔離，使尖峰時段借車分子 $Y^+_{i,s}$ 與分母有效暴露時間 $\text{Exposure}^+_{i,s}$ 精確對齊，徹底消除因空站借不出車所造成的截斷偏誤。
+    \item \textbf{干擾參數完全不變性}：估計量之期望值嚴格獨立於截斷底線與卡車調度之存在與否，證明本方法在數學結構上不受現場營運雜訊影響，無須依賴文獻常見之主觀經驗門檻進行人為修剪。
+    \item \textbf{微觀對帳零偏誤}：藉由波谷包絡與交易聯集條件，成功將工程搬運與自然交易進行物理隔離，使尖峰時段借車分子 $Y^+_{i,s}$ 與分母有效暴露時間 $\text{Exposure}^+_{i,s}$ 精確對齊，徹底消除因觸底單邊截斷所造成的估計偏誤。
     \item \textbf{實證可計算性}：實證研究者無須耗費龐大算力去「猜測」個別單車是否損壞或追蹤調度車輛軌跡，僅憑公開之刷卡流水與站點快照即可直接計算出真實無偏之借還需求率。\hfill$\blacksquare$
 \end{enumerate}
 
@@ -406,7 +417,7 @@ E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}
 依據機率統計中之 Neyman-Fisher 因子分解定理，在給定有效暴露集合 $\mathcal{T}^+_{i,s}$ 下，由於觀測借車次數服從參數為 $\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}$ 之計數分佈，其對數概似函數僅透過觀測交易總數 $Y^+_{i,s}$ 與有效暴露時間 $\text{Exposure}^+_{i,s}$ 依賴於樣本資料：
 \begin{equation}
 \begin{aligned}
-\ln \mathcal{L}\left(\lambda_{i,s} \;\middle|\; Y^+_{i,s}, \text{Exposure}^+_{i,s}, D_{i,d}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right) &= Y^+_{i,s} \ln\left(\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}\right) \\
+\ln \mathcal{L}\left(\lambda_{i,s} \;\middle|\; Y^+_{i,s}, \text{Exposure}^+_{i,s}, D_{i,s}, R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right) &= Y^+_{i,s} \ln\left(\lambda_{i,s} \cdot \text{Exposure}^+_{i,s}\right) \\
 &\quad - \lambda_{i,s} \cdot \text{Exposure}^+_{i,s} - \ln\left(Y^+_{i,s}!\right)
 \end{aligned}
 \end{equation}
@@ -415,6 +426,6 @@ E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}
 基於上述不變性與充分性證明，本研究在實證資料處理管線中，實現了對不可觀測干擾參數之完全消除：
 \begin{enumerate}
     \item \textbf{實證唯一必算之核心充分數據}：在構建各站點各時段之需求分析矩陣時，針對單站供需狀態，僅需由電子票證租借流水帳匯總實際借車次數 $Y^+_{i,s}$ 與還車次數 $Y^-_{i,s}$，並由 TDX 微觀庫存快照提取高於局部波谷之有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與空柱大於零之有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$。
-    \item \textbf{理論保留但實證免算之干擾變數}：故障滯留車數 $D_{i,d}$ 與調度貨車補移車跳躍量 $\left(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right)$ 雖於理論模型中保留其符號以完整刻畫物理系統，但在求算真實需求率時，因其在概似函數與估計式中之偏導數恆為零，實證上完全無須編寫啟發式規則進行推估或剝離。
+    \item \textbf{理論保留但實證免算之干擾變數}：單邊截斷底線 $D_{i,s}$ 與調度貨車補移車跳躍量 $\left(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right)$ 雖於理論模型中保留其符號以完整刻畫物理系統，但在求算真實需求率時，因其在概似函數與估計式中之偏導數恆為零，實證上完全無須編寫啟發式規則進行推估或剝離。
 \end{enumerate}
 此一設計不僅大幅簡化了巨量歷史資料之前處理運算複雜度，更重要的是從根源上杜絕了人為設定過濾門檻所造成的估計偏誤，為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章之時變計數迴歸與非齊次生滅佇列模型提供統計上嚴格無偏之真實需求輸入。
