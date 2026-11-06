@@ -1,0 +1,689 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{none/global//global/global/global}
+  \entry{said1978}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=SEW}{%
+         family={Said},
+         familyi={S\bibinitperiod},
+         given={Edward\bibnamedelima W.},
+         giveni={E\bibinitperiod\bibinitdelim W\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Pantheon Books}%
+    }
+    \strng{namehash}{SEW1}
+    \strng{fullhash}{SEW1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Orientalism}
+    \list{location}{1}{%
+      {New York}%
+    }
+    \field{year}{1978}
+  \endentry
+
+  \entry{geertz1973}{inbook}{}{}
+    \name{author}{1}{}{%
+      {{hash=GC}{%
+         family={Geertz},
+         familyi={G\bibinitperiod},
+         given={Clifford},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Basic Books}%
+    }
+    \strng{namehash}{GC1}
+    \strng{fullhash}{GC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{The Interpretation of Cultures: Selected Essays}
+    \field{chapter}{1}
+    \field{title}{Thick Description: Toward an Interpretive Theory of Culture}
+    \list{location}{1}{%
+      {New York}%
+    }
+    \field{year}{1973}
+  \endentry
+
+  \entry{oed1989}{reference}{}{}
+    \name{editor}{2}{}{%
+      {{hash=SJA}{%
+         family={Simpson},
+         familyi={S\bibinitperiod},
+         given={John\bibnamedelima A.},
+         giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+      }}%
+      {{hash=WESC}{%
+         family={Weiner},
+         familyi={W\bibinitperiod},
+         given={Edmund S.\bibnamedelima C.},
+         giveni={E\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim C\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Oxford University Press}%
+    }
+    \strng{namehash}{SJAWESC1}
+    \strng{fullhash}{SJAWESC1}
+    \field{labelnamesource}{editor}
+    \field{labeltitlesource}{title}
+    \field{edition}{2}
+    \field{title}{The Oxford English Dictionary}
+    \list{location}{1}{%
+      {Oxford}%
+    }
+    \field{year}{1989}
+  \endentry
+
+  \entry{paine1776}{booklet}{}{}
+    \name{author}{1}{}{%
+      {{hash=PT}{%
+         family={Paine},
+         familyi={P\bibinitperiod},
+         given={Thomas},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PT1}
+    \strng{fullhash}{PT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{Printed by R. Bell}
+    \field{title}{Common Sense}
+    \list{location}{1}{%
+      {Philadelphia}%
+    }
+    \field{year}{1776}
+  \endentry
+
+  \entry{kahneman1982}{collection}{}{}
+    \name{editor}{3}{}{%
+      {{hash=KD}{%
+         family={Kahneman},
+         familyi={K\bibinitperiod},
+         given={Daniel},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=SP}{%
+         family={Slovic},
+         familyi={S\bibinitperiod},
+         given={Paul},
+         giveni={P\bibinitperiod},
+      }}%
+      {{hash=TA}{%
+         family={Tversky},
+         familyi={T\bibinitperiod},
+         given={Amos},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Cambridge University Press}%
+    }
+    \strng{namehash}{KDSPTA1}
+    \strng{fullhash}{KDSPTA1}
+    \field{labelnamesource}{editor}
+    \field{labeltitlesource}{title}
+    \field{title}{Judgment under Uncertainty: Heuristics and Biases}
+    \list{location}{1}{%
+      {Cambridge}%
+    }
+    \field{year}{1982}
+  \endentry
+
+  \entry{tversky1982}{incollection}{}{}
+    \name{author}{2}{}{%
+      {{hash=TA}{%
+         family={Tversky},
+         familyi={T\bibinitperiod},
+         given={Amos},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=KD}{%
+         family={Kahneman},
+         familyi={K\bibinitperiod},
+         given={Daniel},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \name{editor}{3}{}{%
+      {{hash=KD}{%
+         family={Kahneman},
+         familyi={K\bibinitperiod},
+         given={Daniel},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=SP}{%
+         family={Slovic},
+         familyi={S\bibinitperiod},
+         given={Paul},
+         giveni={P\bibinitperiod},
+      }}%
+      {{hash=TA}{%
+         family={Tversky},
+         familyi={T\bibinitperiod},
+         given={Amos},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Cambridge University Press}%
+    }
+    \strng{namehash}{TAKD1}
+    \strng{fullhash}{TAKD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Judgment under Uncertainty: Heuristics and Biases}
+    \field{title}{Judgment under Uncertainty: Heuristics and Biases}
+    \list{location}{1}{%
+      {Cambridge}%
+    }
+    \field{year}{1982}
+  \endentry
+
+  \entry{warren1890}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=WSD}{%
+         family={Warren},
+         familyi={W\bibinitperiod},
+         given={Samuel\bibnamedelima D.},
+         giveni={S\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+      {{hash=BLD}{%
+         family={Brandeis},
+         familyi={B\bibinitperiod},
+         given={Louis\bibnamedelima D.},
+         giveni={L\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{WSDBLD1}
+    \strng{fullhash}{WSDBLD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{5}
+    \field{pages}{193\bibrangedash 220}
+    \field{title}{The Right to Privacy}
+    \field{volume}{4}
+    \field{journaltitle}{Harvard Law Review}
+    \field{year}{1890}
+  \endentry
+
+  \entry{harvardlawreview1890}{periodical}{}{}
+    \field{labeltitlesource}{title}
+    \field{title}{Harvard Law Review}
+    \field{volume}{4}
+    \field{year}{1890}
+  \endentry
+
+  \entry{green2025}{inreference}{}{}
+    \name{author}{2}{}{%
+      {{hash=GL}{%
+         family={Green},
+         familyi={G\bibinitperiod},
+         given={Leslie},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=AT}{%
+         family={Adams},
+         familyi={A\bibinitperiod},
+         given={Thomas},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \name{editor}{1}{}{%
+      {{hash=ZEN}{%
+         family={Zalta},
+         familyi={Z\bibinitperiod},
+         given={Edward\bibnamedelima N.},
+         giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Metaphysics Research Lab, Stanford University}%
+    }
+    \strng{namehash}{GLAT1}
+    \strng{fullhash}{GLAT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{The Stanford Encyclopedia of Philosophy}
+    \field{title}{Legal Positivism}
+    \verb{url}
+    \verb https://plato.stanford.edu/entries/legal-positivism/
+    \endverb
+    \field{year}{2025}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{nakamoto2008}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=NS}{%
+         family={Nakamoto},
+         familyi={N\bibinitperiod},
+         given={Satoshi},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NS1}
+    \strng{fullhash}{NS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{howpublished}{White paper}
+    \field{title}{Bitcoin: A Peer-to-Peer Electronic Cash System}
+    \verb{url}
+    \verb https://bitcoin.org/bitcoin.pdf
+    \endverb
+    \field{year}{2008}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{ifrs2026}{online}{}{}
+    \name{author}{1}{}{%
+      {{hash=I}{%
+         family={{IFRS Foundation}},
+         familyi={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{I1}
+    \strng{fullhash}{I1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{IFRS Accounting Standards}
+    \verb{url}
+    \verb https://www.ifrs.org/issued-standards/list-of-standards/
+    \endverb
+    \field{year}{2026}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{apa2013}{manual}{}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={{American Psychiatric Association}},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {American Psychiatric Publishing}%
+    }
+    \strng{namehash}{A1}
+    \strng{fullhash}{A1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{edition}{5}
+    \field{title}{Diagnostic and Statistical Manual of Mental Disorders}
+    \list{location}{1}{%
+      {Arlington, Virginia}%
+    }
+    \field{year}{2013}
+  \endentry
+
+  \entry{surgeongeneral1964}{report}{}{}
+    \name{author}{1}{}{%
+      {{hash=U}{%
+         family={{United States. Surgeon General's Advisory Committee on Smoking and Health}},
+         familyi={U\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{U1}
+    \strng{fullhash}{U1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{1103}
+    \field{title}{Smoking and Health: Report of the Advisory Committee to the Surgeon General of the Public Health Service}
+    \list{location}{1}{%
+      {Washington, D.C.}%
+    }
+    \list{institution}{2}{%
+      {U.S. Department of Health, Education,}%
+      {Welfare}%
+    }
+    \field{type}{Public Health Service Publication}
+    \field{year}{1964}
+  \endentry
+
+  \entry{octave2024}{software}{}{}
+    \name{author}{4}{}{%
+      {{hash=EJW}{%
+         family={Eaton},
+         familyi={E\bibinitperiod},
+         given={John\bibnamedelima W.},
+         giveni={J\bibinitperiod\bibinitdelim W\bibinitperiod},
+      }}%
+      {{hash=BD}{%
+         family={Bateman},
+         familyi={B\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=HS}{%
+         family={Hauberg},
+         familyi={H\bibinitperiod},
+         given={S{\o}ren},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=WR}{%
+         family={Wehbring},
+         familyi={W\bibinitperiod},
+         given={Rik},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{EJW+1}
+    \strng{fullhash}{EJWBDHSWR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{GNU Octave}
+    \verb{url}
+    \verb https://www.gnu.org/software/octave/
+    \endverb
+    \field{version}{9.2.0}
+    \field{year}{2024}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{perelman2002}{unpublished}{}{}
+    \name{author}{1}{}{%
+      {{hash=PG}{%
+         family={Perelman},
+         familyi={P\bibinitperiod},
+         given={Grisha},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PG1}
+    \strng{fullhash}{PG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{note}{Preprint, arXiv:math/0211159}
+    \field{title}{The Entropy Formula for the Ricci Flow and Its Geometric Applications}
+    \verb{url}
+    \verb https://arxiv.org/abs/math/0211159
+    \endverb
+    \field{year}{2002}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{guyon2017}{proceedings}{}{}
+    \name{editor}{7}{}{%
+      {{hash=GI}{%
+         family={Guyon},
+         familyi={G\bibinitperiod},
+         given={Isabelle},
+         giveni={I\bibinitperiod},
+      }}%
+      {{hash=vLU}{%
+         prefix={von},
+         prefixi={v\bibinitperiod},
+         family={Luxburg},
+         familyi={L\bibinitperiod},
+         given={Ulrike},
+         giveni={U\bibinitperiod},
+      }}%
+      {{hash=BS}{%
+         family={Bengio},
+         familyi={B\bibinitperiod},
+         given={Samy},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=WHM}{%
+         family={Wallach},
+         familyi={W\bibinitperiod},
+         given={Hanna\bibnamedelima M.},
+         giveni={H\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=FR}{%
+         family={Fergus},
+         familyi={F\bibinitperiod},
+         given={Rob},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=VSVN}{%
+         family={Vishwanathan},
+         familyi={V\bibinitperiod},
+         given={S.\bibnamedelima V.\bibnamedelima N.},
+         giveni={S\bibinitperiod\bibinitdelim V\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+      {{hash=GR}{%
+         family={Garnett},
+         familyi={G\bibinitperiod},
+         given={Roman},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Curran Associates}%
+    }
+    \strng{namehash}{GI+1}
+    \strng{fullhash}{GILUvBSWHMFRVSVNGR1}
+    \field{labelnamesource}{editor}
+    \field{labeltitlesource}{title}
+    \field{title}{Advances in Neural Information Processing Systems 30}
+    \field{venue}{Long Beach, California}
+    \list{location}{1}{%
+      {Red Hook, New York}%
+    }
+    \field{year}{2017}
+    \field{eventday}{04}
+    \field{eventmonth}{12}
+    \field{eventyear}{2017}
+    \field{eventendday}{09}
+    \field{eventendmonth}{12}
+    \field{eventendyear}{2017}
+  \endentry
+
+  \entry{vaswani2017}{inproceedings}{}{}
+    \name{author}{8}{}{%
+      {{hash=VA}{%
+         family={Vaswani},
+         familyi={V\bibinitperiod},
+         given={Ashish},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=SN}{%
+         family={Shazeer},
+         familyi={S\bibinitperiod},
+         given={Noam},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=PN}{%
+         family={Parmar},
+         familyi={P\bibinitperiod},
+         given={Niki},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=UJ}{%
+         family={Uszkoreit},
+         familyi={U\bibinitperiod},
+         given={Jakob},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=JL}{%
+         family={Jones},
+         familyi={J\bibinitperiod},
+         given={Llion},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=GAN}{%
+         family={Gomez},
+         familyi={G\bibinitperiod},
+         given={Aidan\bibnamedelima N.},
+         giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+      {{hash=KL}{%
+         family={Kaiser},
+         familyi={K\bibinitperiod},
+         given={{\L}ukasz},
+         giveni={{\L}\bibinitperiod},
+      }}%
+      {{hash=PI}{%
+         family={Polosukhin},
+         familyi={P\bibinitperiod},
+         given={Illia},
+         giveni={I\bibinitperiod},
+      }}%
+    }
+    \name{editor}{7}{}{%
+      {{hash=GI}{%
+         family={Guyon},
+         familyi={G\bibinitperiod},
+         given={Isabelle},
+         giveni={I\bibinitperiod},
+      }}%
+      {{hash=vLU}{%
+         prefix={von},
+         prefixi={v\bibinitperiod},
+         family={Luxburg},
+         familyi={L\bibinitperiod},
+         given={Ulrike},
+         giveni={U\bibinitperiod},
+      }}%
+      {{hash=BS}{%
+         family={Bengio},
+         familyi={B\bibinitperiod},
+         given={Samy},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=WHM}{%
+         family={Wallach},
+         familyi={W\bibinitperiod},
+         given={Hanna\bibnamedelima M.},
+         giveni={H\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=FR}{%
+         family={Fergus},
+         familyi={F\bibinitperiod},
+         given={Rob},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=VSVN}{%
+         family={Vishwanathan},
+         familyi={V\bibinitperiod},
+         given={S.\bibnamedelima V.\bibnamedelima N.},
+         giveni={S\bibinitperiod\bibinitdelim V\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+      {{hash=GR}{%
+         family={Garnett},
+         familyi={G\bibinitperiod},
+         given={Roman},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Curran Associates}%
+    }
+    \strng{namehash}{VA+1}
+    \strng{fullhash}{VASNPNUJJLGANKLPI1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Advances in Neural Information Processing Systems 30}
+    \field{pages}{5998\bibrangedash 6008}
+    \field{title}{Attention Is All You Need}
+    \list{location}{1}{%
+      {Red Hook, New York}%
+    }
+    \field{year}{2017}
+  \endentry
+
+  \entry{shannon1937}{thesis}{}{}
+    \name{author}{1}{}{%
+      {{hash=SCE}{%
+         family={Shannon},
+         familyi={S\bibinitperiod},
+         given={Claude\bibnamedelima E.},
+         giveni={C\bibinitperiod\bibinitdelim E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SCE1}
+    \strng{fullhash}{SCE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{A Symbolic Analysis of Relay and Switching Circuits}
+    \list{location}{1}{%
+      {Cambridge, Massachusetts}%
+    }
+    \list{institution}{1}{%
+      {Massachusetts Institute of Technology}%
+    }
+    \field{type}{mathesis}
+    \field{year}{1937}
+  \endentry
+
+  \entry{fisher1936}{misc}{}{}
+    \name{author}{1}{}{%
+      {{hash=FRA}{%
+         family={Fisher},
+         familyi={F\bibinitperiod},
+         given={Ronald\bibnamedelima A.},
+         giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {UCI Machine Learning Repository}%
+    }
+    \strng{namehash}{FRA1}
+    \strng{fullhash}{FRA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \verb{doi}
+    \verb 10.24432/C56C76
+    \endverb
+    \field{title}{Iris}
+    \field{year}{1936}
+    \field{urlday}{11}
+    \field{urlmonth}{08}
+    \field{urlyear}{2026}
+  \endentry
+
+  \entry{bosenberg1931}{patent}{}{}
+    \name{author}{1}{}{%
+      {{hash=BHF}{%
+         family={Bosenberg},
+         familyi={B\bibinitperiod},
+         given={Henry\bibnamedelima F.},
+         giveni={H\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BHF1}
+    \strng{fullhash}{BHF1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{Plant Patent 1}
+    \field{title}{Climbing or Trailing Rose}
+    \list{location}{1}{%
+      {countryus}%
+    }
+    \field{type}{patent}
+    \field{year}{1931}
+  \endentry
+\enddatalist
+\endinput
