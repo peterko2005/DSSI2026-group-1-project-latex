@@ -327,14 +327,14 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
 
 \subsection{基準抵達過程之設定動機與資料物理邊界}\label{subsec:poisson_data_boundary}
 
-在建立潛在借還需求之統計證明前，須先由雙源資料之資訊集邊界出發，闡明本研究以「分段常數齊次 Poisson 過程」建模之計量必然性，以及其與機器學習預測模型之分工關係：
+在建立潛在借還需求之統計證明前，須先由雙源資料之資訊集邊界與實務作業尺度出發，闡明本研究以「分段常數齊次 Poisson 過程」建模之計量必然性：
 
 \begin{enumerate}
     \item \textbf{次時段時變強度之不可辨識性與最大熵基準}：
-    微觀交通流之抵達強度雖隨時間波動（非齊次強度 $\lambda_i(t)$），惟配適連續時變函數 $\lambda_i(t)$ 必須具備分秒級之微觀交易時間戳記。受限於官方票證資料將時間戳記截斷至整點（\texttt{:00:00}），且 TDX 快照差分 $\Delta I_{i,\tau}$ 混雜未記載之卡車調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 與截斷底線 $D_{i,s}$，實證上在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 內僅能觀測到時段交易總量 $Y^+_{i,s}$，無法取得次時段內之微觀事件分佈。在「僅具區間總量與暴露時長」之資訊集約束下，小時內之連續波形 $\lambda_i(t)$ 在統計上屬不可辨識。依據最大熵原理，將單一決策時段 $s$ 內之潛在抵達強度設為局部平穩常數 $\lambda_{i,s}$（分段常數齊次 Poisson 過程），是不引入武斷函數假設之最簡無偏基準，亦直接對應調度車隊以小時為週期之作業尺度。
+    微觀交通流之抵達強度雖隨時間波動（非齊次強度 $\lambda_i(t)$），惟配適連續時變函數 $\lambda_i(t)$ 必須具備分秒級之微觀交易時間戳記。受限於官方票證資料將時間戳記截斷至整點（\texttt{:00:00}），且 TDX 快照差分 $\Delta I_{i,\tau}$ 混雜未記載之卡車調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 與截斷底線 $D_{i,s}$，實證上在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 內僅能觀測到時段交易總量 $Y^+_{i,s}$，無法取得次時段內之微觀事件序列。在「僅具區間總量與暴露時長」之資訊集約束下，小時內之連續波形 $\lambda_i(t)$ 在統計上屬不可辨識（unidentifiable）。依據最大熵原理，在已知區間總期望值而無次時段微觀先驗資訊下，將單一決策時段 $s$ 內之潛在抵達強度設為局部平穩常數 $\lambda_{i,s}$（分段常數齊次 Poisson 過程），是不引入武斷函數形式假設之唯一無偏基準。
 
-    \item \textbf{目標標籤去偏與機器學習之上下游分工}：
-    監督式機器學習必須建立於未受污染之目標標籤之上。若直接以原始票證計數 $Y^+_{i,s}$ 訓練模型，將把斷貨截斷導致之零交易誤判為無需求；若直接擬合 TDX 庫存變動 $\Delta I_{i,\tau}$，則會將卡車調度搬移誤判為自然借還人潮。即便先以波谷遮罩剔除截斷時段，各站剩餘之有效暴露時長並不相等（$\text{Exposure}^+_{i,s} \le \Delta t_s$）且僅具單一總量，機器學習無法繞過資料限制推演出微觀時變率，仍須先經由暴露時長標準化以消除截面偏誤。因此，本節推導與第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章之預測模型屬嚴格之上下游關係：本節藉由點過程理論剝離硬體截斷與調度干擾，產出無偏之小時級真實需求率標籤；後續計量與機器學習模型方能在此純淨標籤上，進階學習氣象、日曆與空間拓撲之非線性關係。
+    \item \textbf{車隊調度週期與下游佇列模型之尺度契合}：
+    實務上，營運商調度貨車於城市路網巡迴補車，受限於道路行車與裝卸作業歷時，其資源再平衡決策本質上即以小時（或課堂節次區段）為作業週期。在分秒尺度上強行配適高階參數化波形，對宏觀車隊調度並無實質增益；反之，以時段 $s$ 為單位還原之局部平穩需求率 $\left(\hat{\lambda}_{i,s}, \hat{\mu}_{i,s}\right)$，恰能直接作為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章分時段非齊次生滅佇列（$M_t/M_t/1/C_i$）與混合整數規劃之精確參數輸入。
 \end{enumerate}
 
 \subsection{真實需求率之無偏性與干擾參數不變性證明}
@@ -347,7 +347,7 @@ E\left[dN_{i,s}(t) \;\middle|\; \mathcal{F}_{t^-}\right] &= \lambda_{i,s} \, dt
 \end{align}
 令 $dY^+_{i,s}(t)$ 為電子票證租借資料庫在時點 $t$ 實際記錄到之借車交易增量。由於維運人員之貨車調度作業 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 不產生票證刷卡紀錄，且潛在使用者抵達站點時，唯有當站點處於未受單邊截斷之可交互狀態（即 $B^{\text{eff}}_{i,t^-} = I_{i,t^-} - D_{i,s} \ge 1$）時方能實際完成借車交互，故觀測借車過程與潛在抵達過程之結構關係式可嚴格寫為：
 \begin{align}
-dY^+_{i,s}(t) &= \mathbb{I}\left(I_{i,t^-} - D_{i,s} \ge 1\right) \cdot dN_{i,s}(t)
+dY^+_{i,s}(t) &= \mathbb{I}\left(I_{i,t^-} - D_{i,s} \ge 1\right) \cdot dN_{i,s}(t) \label{eq:censored_poisson_increment}
 \end{align}
 其中 $\mathbb{I}(\cdot)$ 為指示函數。
 
@@ -420,3 +420,99 @@ E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}
     \item \textbf{理論保留但實證免算之干擾變數}：單邊截斷底線 $D_{i,s}$ 與調度貨車補移車跳躍量 $\left(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}\right)$ 雖於理論模型中保留其符號以完整刻畫物理系統，但在求算真實需求率時，因其在概似函數與估計式中之偏導數恆為零，實證上完全無須編寫啟發式規則進行推估或剝離。
 \end{enumerate}
 此一設計不僅大幅簡化了巨量歷史資料之前處理運算複雜度，更重要的是從根源上杜絕了人為設定過濾門檻所造成的估計偏誤，為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章之時變計數迴歸與非齊次生滅佇列模型提供統計上嚴格無偏之真實需求輸入。
+
+\subsection{結構還原法對純機器學習之偏誤與均方風險佔優證明}\label{subsec:ml_strict_dominance_proof}
+
+在確立最小充分統計量後，本節進一步回應實證資料科學常見之方法論提問：若放寬第~\ref{subsec:poisson_data_boundary}~節之局部齊次假設，允許時段內之潛在需求率隨時間連續波動，逕以高階監督式機器學習（如深度神經網路或梯度提升決策樹等通用函數逼近器）直接擬合原始觀測資料，能否在預測精確度上超越本研究之暴露量校正結構估計量？以下結合雙源實證資料之物理結構與統計決策理論，定義以「未受硬體截斷之真實潛在需求率」為基準的均方誤差風險，並給出結構還原估計量對純機器學習具備嚴格偏誤佔優性之數理證明。
+
+首先檢視純機器學習在雙源原始資料上面臨之監督訊號缺陷。設外生環境特徵向量為 $X_{i,s} \in \mathcal{X}$（涵蓋局屬臺北站氣象觀測之降雨與氣溫、學術與行政日曆屬性及時空索引）。若不經波谷遮罩與雙通道解耦，直接將機器學習模型訓練於現有之任一原始資料源，其監督標籤皆存在無法由樣本規模或模型複雜度消除之系統性偏誤：
+\begin{enumerate}
+    \item \textbf{以票證原始時段交易率（$Y^{\text{raw}}_{i,s} \equiv Y^+_{i,s} / \Delta t_s$）作為監督標籤之截斷盲區}：
+    由式~\eqref{eq:censored_poisson_increment}~之結構關係 $dY^+_{i,s}(t) = \mathbb{I}(I_{i,t^-} - D_{i,s} \ge 1) \cdot dN_{i,s}(t)$ 可知，當站點因無車可借觸及單邊截斷底線（$I_{i,t^-} \le D_{i,s}$）時，指示函數恆為零，觀測交易增量 $dY^+_{i,s}(t) \equiv 0$。自資訊理論觀點視之，在斷貨子區間 $\mathcal{T}_s \setminus \mathcal{T}^+_{i,s}$ 內，觀測刷卡紀錄與真實潛在抵達間之條件互資訊恆等於零（$I(dN_{i,s}; dY^+_{i,s} \mid I_{i,t^-} \le D_{i,s}) = 0$）。實證檢核臺大場域資料顯示，平日晚間 21～22 時高達 $32\%$ 之站點發生空站斷貨（日間 09～10 時與 13～14 時教學區亦有 $10\%\text{--}12\%$ 之站點發生滿站無柱截斷）；在斷貨時段內，純機器學習僅能觀測到帳面成交量驟降，無法區辨「真實無借車需求」與「硬體缺車導致需求被截斷」。
+
+    \item \textbf{以 TDX 庫存快照差分（$\Delta I_{i,\tau}$）作為監督標籤之三種結構性污染}：
+    若試圖繞過票證整點截斷、改以 TDX 變動觸發快照之相鄰庫存差分 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$ 訓練機器學習模型，實證管線檢核證實其標籤將同時遭受三類非自然流量干擾：（1）\textbf{慢速人工補車混淆}——例如捷運公館站於凌晨 03:00～05:00（捷運停駛且無通勤人潮）仍呈現每小時 $5\text{--}12$ 輛之淨流入，經查係維運人員以每次 $1\text{--}3$ 輛之微幅步長陸續推進車柱，完全逃逸傳統 $|\Delta I_{i,\tau}| \ge 10$ 之調度過濾門檻；（2）\textbf{車柱感測器 $\pm 1$ 跳動雜訊}——部分站點於離峰時段出現硬體感測器反覆 $\pm 1$ 振盪，直接累加負差分將嚴重虛增借車量；（3）\textbf{微觀步長內借還相消}——在相鄰快照中位數 $1.9$ 分鐘之採樣區間內，同時發生之自然借車與還車在淨差分 $\Delta I_{i,\tau}$ 中相互抵銷，導致高周轉時段之總需求被系統性低估。
+\end{enumerate}
+
+為在數理上精確量化上述截斷偏誤，現放寬時段內之齊次性假設，設站點 $i$ 於決策時段 $s$（總時長 $\Delta t_s$）內之潛在無約束借車抵達服從一般非齊次時變強度 $\lambda_{i,s}(t)$。定義時段 $s$ 內未受硬體截斷之「真實平均需求率」為：
+\begin{align}
+\lambda^*_{i,s} &\equiv \frac{1}{\Delta t_s} \int_0^{\Delta t_s} \lambda_{i,s}(t) \, dt
+\end{align}
+並記給定外生特徵 $X_{i,s}$ 下之真實條件期望需求率為 $g^*(X_{i,s}) \equiv E\left[\lambda^*_{i,s} \;\middle|\; X_{i,s}\right]$。對於任意需求率預測函數 $f(X_{i,s})$，定義其衡量真實潛在需求之均方誤差風險為：
+\begin{align}
+R_{\text{true}}(f) &\equiv E\left[ \left( f(X_{i,s}) - \lambda^*_{i,s} \right)^2 \right] = E\left[ \left( f(X_{i,s}) - g^*(X_{i,s}) \right)^2 \right] + E\left[ \text{Var}\left( \lambda^*_{i,s} \;\middle|\; X_{i,s} \right) \right]
+\end{align}
+其中第二項 $E\left[\text{Var}(\lambda^*_{i,s} \mid X_{i,s})\right]$ 為潛在抵達過程固有之不可約隨機變異，與模型選擇無關；故比較不同方法之真實需求均方風險，完全等價於比較其對真實條件期望需求率 $g^*(X_{i,s})$ 之偏誤平方。
+
+依第~\ref{subsec:trough_envelope}~節之有效暴露時間集合 $\mathcal{T}^+_{i,s}$，定義時段 $s$ 之單邊截斷時間比例為 $\pi_{i,s} \equiv \text{EmptyMin}_{i,s} / \Delta t_s \in [0, 1)$，則有效暴露時長滿足 $\text{Exposure}^+_{i,s} = (1 - \pi_{i,s})\Delta t_s$。將時段 $[0, \Delta t_s]$ 嚴格分割為有效暴露子集 $\mathcal{T}^+_{i,s}$ 與觸底截斷子集 $\mathcal{T}_s \setminus \mathcal{T}^+_{i,s}$，分別定義站點在有車暴露期間與斷貨截斷期間之真實子區間平均需求強度：
+\begin{align}
+\bar{\lambda}^+_{i,s} &\equiv \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt, \qquad \bar{\lambda}^{\text{empty}}_{i,s} \equiv \frac{1}{\text{EmptyMin}_{i,s}} \int_{t \in \mathcal{T}_s \setminus \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt
+\end{align}
+由此，未受截斷之真實平均需求率 $\lambda^*_{i,s}$ 可精確分解為兩子區間強度之加權組合：
+\begin{align}
+\lambda^*_{i,s} &= (1 - \pi_{i,s}) \bar{\lambda}^+_{i,s} + \pi_{i,s} \bar{\lambda}^{\text{empty}}_{i,s}
+\end{align}
+
+現考慮直接以原始觀測交易率 $Y^{\text{raw}}_{i,s} = Y^+_{i,s} / \Delta t_s$ 進行監督式學習之通用機器學習模型族 $\mathcal{H}$。在無窮大樣本極限（$n \to \infty$）且假說空間具備完美逼近能力之最有利條件下，藉由最小化經驗平方損失 $\frac{1}{n}\sum (Y^{\text{raw}}_{i,s} - f(X_{i,s}))^2$ 所收斂之理論極限預測函數 $f^*_{\text{ML}}(X_{i,s})$，在數學上嚴格等於觀測交易率之條件期望值：
+\begin{equation}
+\begin{aligned}
+f^*_{\text{ML}}(X_{i,s}) &= E\left[ \frac{Y^+_{i,s}}{\Delta t_s} \;\middle|\; X_{i,s} \right] = E\left[ \frac{\text{Exposure}^+_{i,s}}{\Delta t_s} \cdot \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt \;\middle|\; X_{i,s} \right] \\
+&= E\left[ (1 - \pi_{i,s}) \bar{\lambda}^+_{i,s} \;\middle|\; X_{i,s} \right]
+\end{aligned}
+\end{equation}
+為清晰對比兩方法在給定時段狀態下之估計偏誤，以下在給定特徵與截斷比例 $(X_{i,s}, \pi_{i,s})$ 下進行條件展開。純機器學習預測函數相對於真實條件期望需求率 $g^*(X_{i,s}) = (1 - \pi_{i,s})\bar{\lambda}^+_{i,s} + \pi_{i,s}\bar{\lambda}^{\text{empty}}_{i,s}$ 之漸近偏誤為：
+\begin{align}
+\text{Bias}_{\text{ML}}(X_{i,s}) &\equiv f^*_{\text{ML}}(X_{i,s}) - g^*(X_{i,s}) = -\pi_{i,s} \bar{\lambda}^{\text{empty}}_{i,s}
+\end{align}
+其偏誤絕對值 $\left|\text{Bias}_{\text{ML}}(X_{i,s})\right| = \pi_{i,s} \bar{\lambda}^{\text{empty}}_{i,s}$ 直接正比於斷貨期間之全部潛在抵達強度 $\bar{\lambda}^{\text{empty}}_{i,s}$，屬於一階階數（$O(1)$）之系統性低估。
+
+反觀本研究之暴露量校正結構估計量 $\hat{\lambda}_{i,s} = Y^+_{i,s} / \text{Exposure}^+_{i,s}$，透過將分母精確縮減至有效暴露集合 $\mathcal{T}^+_{i,s}$（即便於未完全斷貨時段因 $b_{i,s} > D_{i,s}$ 保守修剪波谷分鐘，Poisson 過程在 $\mathcal{T}^+_{i,s}$ 上之期望強度仍維持不變），其期望預測函數 $f^*_{\text{prop}}(X_{i,s})$ 嚴格收斂至有車暴露期間之真實子區間平均強度：
+\begin{align}
+f^*_{\text{prop}}(X_{i,s}) &\equiv E\left[ \frac{Y^+_{i,s}}{\text{Exposure}^+_{i,s}} \;\middle|\; X_{i,s} \right] = \bar{\lambda}^+_{i,s}
+\end{align}
+將 $f^*_{\text{prop}}(X_{i,s})$ 與真實條件期望需求率 $g^*(X_{i,s})$ 相減，可得本研究結構估計量在非齊次時變環境下之唯一殘餘偏誤：
+\begin{equation}
+\begin{aligned}
+\text{Bias}_{\text{prop}}(X_{i,s}) &\equiv f^*_{\text{prop}}(X_{i,s}) - g^*(X_{i,s}) = \bar{\lambda}^+_{i,s} - \left[ (1 - \pi_{i,s}) \bar{\lambda}^+_{i,s} + \pi_{i,s} \bar{\lambda}^{\text{empty}}_{i,s} \right] \\
+&= \pi_{i,s} \left( \bar{\lambda}^+_{i,s} - \bar{\lambda}^{\text{empty}}_{i,s} \right)
+\end{aligned}
+\end{equation}
+其偏誤絕對值為：
+\begin{align}
+\left| \text{Bias}_{\text{prop}}(X_{i,s}) \right| &= \pi_{i,s} \left| \bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s} \right|
+\end{align}
+上式揭示了一個關鍵之數理性質：結構估計量已於第一階上完全還原基準人潮強度 $\bar{\lambda}^+_{i,s}$，其殘餘誤差僅取決於「同一個小時內斷貨子區間與有車子區間之次時段時變差額」$\left|\bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s}\right|$，屬於二階時變微擾（當小時內抵達強度局部平穩時，$\bar{\lambda}^{\text{empty}}_{i,s} = \bar{\lambda}^+_{i,s}$，偏誤即嚴格歸零）。
+
+現證明結構估計量在真實需求均方風險下對純機器學習之嚴格佔優性。考慮發生單邊截斷（$\pi_{i,s} > 0$）之尖峰時段集合 $\mathcal{X}_{\text{peak}} \subset \mathcal{X}$，其在全年樣本中具嚴格正測度 $P(\mathcal{X}_{\text{peak}}) > 0$。由於站點之所以在時段 $s$ 內由有車耗盡至觸底斷貨，必然是在斷貨前夕經歷了實質的正向借車需求，故必有 $\bar{\lambda}^+_{i,s} > 0$；同時，在通勤與換堂尖峰引發之斷貨期間，外界持續抵達之未滿足需求強度滿足 $\bar{\lambda}^{\text{empty}}_{i,s} \ge \bar{\lambda}^+_{i,s} > 0$（事實上，以下均方風險佔優定理僅需更寬鬆之條件 $2\bar{\lambda}^{\text{empty}}_{i,s} > \bar{\lambda}^+_{i,s} > 0$ 即可成立）。在此物理條件下，恆有：
+\begin{align}
+0 \le \bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s} < \bar{\lambda}^{\text{empty}}_{i,s}
+\end{align}
+不等式兩端同乘以嚴格正值 $\pi_{i,s} > 0$，即得逐點嚴格偏誤佔優不等式：
+\begin{align}
+\left| \text{Bias}_{\text{prop}}(X_{i,s}) \right| &< \left| \text{Bias}_{\text{ML}}(X_{i,s}) \right|, \quad \forall\ X_{i,s} \in \mathcal{X}_{\text{peak}}
+\end{align}
+進而計算兩者在全域真實需求均方風險 $R_{\text{true}}$ 下之期望損失差額：
+\begin{equation}
+\begin{aligned}
+R_{\text{true}}\left(f^*_{\text{ML}}\right) - R_{\text{true}}\left(f^*_{\text{prop}}\right) &= E\left[ \text{Bias}_{\text{ML}}(X_{i,s})^2 - \text{Bias}_{\text{prop}}(X_{i,s})^2 \right] \\
+&= E\left[ \pi_{i,s}^2 \left( \left(\bar{\lambda}^{\text{empty}}_{i,s}\right)^2 - \left(\bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s}\right)^2 \right) \right] \\
+&= E\left[ \pi_{i,s}^2 \bar{\lambda}^+_{i,s} \left( 2\bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s} \right) \right]
+\end{aligned}
+\end{equation}
+由於在正測度尖峰集合 $\mathcal{X}_{\text{peak}}$ 上，$\pi_{i,s} > 0$、$\bar{\lambda}^+_{i,s} > 0$ 且 $2\bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s} \ge \bar{\lambda}^{\text{empty}}_{i,s} > 0$，被積函數嚴格正定。定義正實數下界常數：
+\begin{align}
+\delta &\equiv \int_{\mathcal{X}_{\text{peak}}} \pi_{i,s}^2 \bar{\lambda}^+_{i,s} \left( 2\bar{\lambda}^{\text{empty}}_{i,s} - \bar{\lambda}^+_{i,s} \right) dP(X_{i,s}) > 0
+\end{align}
+則真實需求均方風險恆滿足嚴格不等式：
+\begin{align}
+R_{\text{true}}\left(f^*_{\text{ML}}\right) - R_{\text{true}}\left(f^*_{\text{prop}}\right) \ge \delta > 0 \tag*{\text{$\blacksquare$}}
+\end{align}
+
+上述定理在計量方法論與本專案之全系統架構上確立了兩項核心結論：
+\begin{enumerate}
+    \item \textbf{一階截斷盲區與二階時變擾動之量級分離}：
+    純機器學習直接擬合原始觀測值時，其預測偏誤為一階截斷損失 $\pi_{i,s}\bar{\lambda}^{\text{empty}}_{i,s}$（例如當站點於單小時內斷貨 40 分鐘即 $\pi_{i,s} = 2/3$，且斷貨前 $\bar{\lambda}^+_{i,s} = 1.0$、斷貨期間尖峰抵達 $\bar{\lambda}^{\text{empty}}_{i,s} = 1.5$ 時，純機器學習預測值僅 $0.33$，相較於真實潛在需求率 $1.33$ 產生高達 $-75\%$ 之嚴重低估，平方誤差達 $1.00$）；反觀本研究之結構還原法僅承擔二階次時段時變差額 $\pi_{i,s}(\bar{\lambda}^+_{i,s} - \bar{\lambda}^{\text{empty}}_{i,s})$（同例中預測值為 $1.00$，相對誤差僅 $-25\%$，平方誤差降至 $0.11$，均方風險改善達 $9$ 倍）。黑盒子模型在常規交叉驗證中看似具備極低之測試集誤差，實係在受截斷污染之觀測標籤 $Y^{\text{raw}}_{i,s}$ 上過度擬合「硬體缺車之供給上限」，而非捕捉真實借車需求。
+
+    \item \textbf{結構暴露量校正與機器學習特徵預測之兩階段互補分工}：
+    本定理嚴格證明，任何監督式學習演算法皆無法在未經暴露量校正之原始資料上自動消除單邊截斷偏誤；然而，這並非排斥機器學習之高維度非線性擬合能力，而是確立了本研究「先結構還原、後機器學習」之兩階段必然性——必須先由本章之波谷遮罩結構估計式還原出消除一階截斷偏誤之真實潛在需求率標籤 $\left(\hat{\lambda}_{i,s}, \hat{\mu}_{i,s}\right)$，再將此無偏統計量交由第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章之參數化負二項計數迴歸與非參數 LightGBM 模型，學習氣象降雨、寒暑假與課堂節次等高維外生特徵對潛在需求之影響，方能兼顧統計無偏性與預測精確度。
+\end{enumerate}
