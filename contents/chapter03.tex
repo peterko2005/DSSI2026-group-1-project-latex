@@ -13,17 +13,17 @@
     \item \textbf{站點集合與容量}：令 $S = \{1, 2, \dots, |S|\}$ 表示研究範圍內之所有 YouBike 2.0 站點（以下簡稱站點）。每一站點 $i \in S$ 具備固定之車柱容量上限 $C_i \in \mathbb{Z}_{>0}$。
     \item \textbf{全區可用車總數}：各站點停放之可用單車總數受限於單車網絡配置的站點車柱總規模 $N$。
     \textcolor{red}{\item \textbf{調度車隊與載運容量}：令 $V = \{1, 2, \dots, |V|\}$ 表示負責巡迴搬運重平衡之調度卡車集合，每輛調度車輛 $v \in V$ 之最大載車容量為 $\hat{C}_v$。}（現在有分兩種調度車輛，分別是腳踏三輪車跟卡車，還有停在路邊的單車總量，這部分能討論到底要不要做。）
-    \item \textbf{時間粒度與規劃時域}：定義 $\tau \in \{1, 2, \dots, 1440\}$ 為分鐘級微觀狀態觀測索引；決策規劃則劃分為離散時段集合 $t \in T = \{1, 2, \dots, |T|\}$，每時段長度為 $\Delta t$（例如 15 分鐘、30 分鐘，或依臺大課表節次定義之區段）。
+    \item \textbf{時間粒度與規劃時域}：定義 $\tau \in \{1, 2, \dots, 1440\}$ 為分鐘級微觀狀態觀測索引；受限於官方電子票證時間戳記僅精確至整點小時，需求還原與預測模組統一以小時作為主要離散時段索引 $s, t \in T$（每期長度 $\Delta t = 60$ 分鐘；下游第~\ref{sec:birth_death_queue}~節之連續時間生滅佇列與微觀模擬器則可在分時段常數或平滑強度下進一步依課表節次或更細步長進行積分求解）。
 \end{enumerate}
 
 \subsection{四階段閉環管線架構}
 
 本研究所提出之最佳化重平衡系統由四個子階段組成：
 \begin{enumerate}
-    \item \textbf{第一階段（截斷需求還原）}：原始開放資料中混雜故障無效車與人為調度跳躍資料，且在「無車可借（空站）」與「無位可還（滿站）」時，真實潛在需求遭受截斷。本階段透過暴露時間校正與鄰站斷貨溢出替代模型，還原真實借車率 $\hat{\lambda}_{i,t}$ 與真實還車率 $\hat{\mu}_{i,t}$。
+    \item \textbf{第一階段（截斷需求還原與時變預測）}：第~\ref{chap:Data & Latent Demand Reconstruction}~章已透過「局部波谷遮罩」結合電子票證交易流水與微觀庫存快照，消除故障沉澱車與卡車搬移干擾並校正空滿站暴露時間，還原歷史小時級真實潛在借車率 $\hat{\lambda}^{\text{obs}}_{i,s}$ 與還車率 $\hat{\mu}^{\text{obs}}_{i,s}$。在此無偏充分統計量基礎上，本章第~\ref{sec:demand_forecasting_models}~節進一步建構暴露量校正之負二項計數迴歸模型，預測跨日曆與氣象情境之未來需求率 $\hat{\lambda}^{\text{pred}}_{i,t}$ 與 $\hat{\mu}^{\text{pred}}_{i,t}$。
     \item \textbf{第二階段（隨機過程之單站時變生滅佇列與安全區間推導）}：將還原之借還率作為參數，建立各站點獨立之有限容量非齊次佇列模型（$M_t/M_t/1/C_i$ 生滅過程）。透過數值求解 Kolmogorov 前向微分方程組，精確推導各站使用者不滿意度凸函數（UDF），進而求解單站最適目標車數 $\ell^*_{i,t}$ 與滿足 Type-2 服務水準之安全庫存緩衝區間 $[\underline{\ell}_{i,t}, \bar{\ell}_{i,t}]$。
     \item \textbf{第三階段（空間網路之時變馬可夫鏈流動轉移）}：考量跨站騎乘之時空連動，透過轉乘 OD 轉移機率矩陣 $P_t(i,j)$ 與騎乘延遲卷積刻畫全單車網絡自然流動；並在全網總車數約束下，基於邊際凸性貪婪演算法求解靜態最適車隊配置；進一步在日間營運中，以安全區間與目標水位為導向，建立多期動態重平衡混合整數規劃（DROB-T 與 DROB-I MIP）。
-    \item \textbf{第四階段（運籌學最佳化之混合整數規劃（MIP）與離散凸性貪婪配置）}：在 1 分鐘粒度之離散事件模擬器中，以整合使用者遺憾、搬運成本與巡迴里程之綜合評分函數 $\text{Score}$，對 4 種候選調度策略進行跨年度（2023 訓練與 2024 驗證）歷史回測。
+    \item \textbf{第四階段（運籌學最佳化之混合整數規劃（MIP）與離散凸性貪婪配置）}：在 1 分鐘粒度之離散事件模擬器中，以整合使用者遺憾、搬運成本與巡迴里程之綜合評分函數 $\text{Score}$，對 4 種候選調度策略進行跨年度（2024 年建模校準與 2025 年跨年度／樣本外驗證）歷史回測。
 \end{enumerate}
 
 \subsection{論文符號系統}
@@ -48,21 +48,23 @@
     \textcolor{red}{\item $\hat{C}_v$：調度卡車 $v$ 之最大載運容量。}
     \item $\text{dist}_{i,j}$：站點 $i$ 與站點 $j$ 間之實際道路行車距離（公尺）。
     \item $B^{\text{gen}}_{i,\tau}, B^{\text{elec}}_{i,\tau}, O_{i,\tau}$：時點 $\tau$ 原始觀測之一般車數、電輔車數與空柱數；$I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$ 為帳面可租借單車總數。
-    \item $D_{i,d}$：站點 $i$ 於日期 $d$ 之長期滯留無效沉澱車數（含故障車與低電量電輔車）。
-    \item $B^{\text{eff}}_{i,\tau}$：時點 $\tau$ 排除故障與低電量沉澱車輛後之真實有效可用單車總數。
-    \item $\text{EmptyMin}_{i,s}, \text{FullMin}_{i,s}$：時段 $s$ 內處於無車可借（$B^{\text{eff}} = 0$）與無位可還（$O = 0$）之分鐘數。
+    \item $D_{i,s}$：站點 $i$ 於時段 $s$ 之單邊截斷底線（涵蓋故障車與低電量鎖定車；依第~\ref{sec:demand_reconstruction}~節定理，實證運算無須直接估計該干擾變數）。
+    \item $b_{i,s}$：時段 $s$ 內帳面可借車數之局部庫存波谷最小值 $\min_{\tau \in \mathcal{T}_s} I_{i,\tau}$，在物理上構成 $D_{i,s}$ 之上界包絡。
+    \item $B^{\text{eff}}_{i,\tau}$：時點 $\tau$ 高於單邊截斷底線 $D_{i,s}$ 之真實可交互可用單車數（實證上以 $I_{i,\tau} > b_{i,s}$ 進行包絡判別）。
+    \item $\text{EmptyMin}_{i,s}, \text{FullMin}_{i,s}$：時段 $s$ 內處於局部波谷觸底斷貨（$I_{i,\tau} = b_{i,s}$）與帳面滿站無柱（$O_{i,\tau} = 0$）之累計分鐘數。
     \item $\text{Exposure}^+_{i,s}, \text{Exposure}^-_{i,s}$：時段 $s$ 內有車可借與有位可還之有效暴露時間（分鐘）。
-    \item $Y^+_{i,s}, Y^-_{i,s}$：時段 $s$ 扣除調度跳躍資料後之觀測借車次數與觀測還車次數。
-    \textcolor{red}{\item $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$：識別出之調度車輛補入與移出跳躍量。}
-    \item $q^{\text{empty}}_{-i,s}, q^{\text{full}}_{-i,s}$：鄰近站點集合 $N_i$ 是否處於空站或滿站狀態之溢出替代指標。
+    \item $Y^+_{i,s}, Y^-_{i,s}$：電子票證資料庫於時段 $s$ 記錄之自然借車與還車交易次數（工程搬運作業不觸發刷卡，故物理上天然不含卡車調度跳躍）。
+    \textcolor{red}{\item $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$：調度車輛對站點進行之批次補入與移出搬運量。}
     \item $\text{Rain}_s, \text{Cold}_s$：降雨與低溫\textcolor{red}{（$< 15^\circ\text{C}$）}氣象虛擬變數。
-    \item $\text{Slot}_k, \text{Type}_i$：課堂時段類別與站點功能分群類別。
-    \item $\text{FriPM}_s, \text{Exam}_s, \text{Event}_s$：週五午後、考試週與大型校園活動虛擬變數。
+    \item $\text{Weekday}_s, \text{Semester}_s$：實質工作日與學期授課期間指示變數。
+    \item $\text{Slot}_{k,s}, \text{Type}_i$：課堂時段類別指示變數與站點功能分群類別（設基準時段 $k = 1$ 防範共線）。
+    \item $\text{Exam}_s, \text{Event}_s$：期中期末考週與大型校園活動虛擬變數（供擴充校曆假設檢定選配）。
 \end{enumerate}
 
 \item 待估計計量與隨機過程參數
 \begin{enumerate}[label = \textbullet]
-    \item $\hat{\lambda}_{i,t}, \hat{\mu}_{i,t}$：站點 $i$ 於時段 $t$ 經截斷校正後之真實潛在借車率與還車率。
+    \item $\hat{\lambda}^{\text{obs}}_{i,s}, \hat{\mu}^{\text{obs}}_{i,s}$：由第~\ref{chap:Data & Latent Demand Reconstruction}~章局部波谷遮罩所還原之歷史時段 $s$ 無偏觀測借還率（作為監督真值）。
+    \item $\hat{\lambda}^{\text{pred}}_{i,t}, \hat{\mu}^{\text{pred}}_{i,t}$：由第~\ref{sec:demand_forecasting_models}~節預測模型針對未來規劃時段 $t$ 所推估之期望借還率（下文第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章其餘各節簡記為 $\hat{\lambda}_{i,t}, \hat{\mu}_{i,t}$ 或連續時間強度 $\hat{\lambda}_i(t), \hat{\mu}_i(t)$）。
     \item $P_t(i,j)$：時段 $t$ 由站點 $i$ 借車並於站點 $j$ 歸還之轉移機率矩陣。
     \item $f_{ij}(\tau)$：站點 $i$ 至站點 $j$ 之騎乘時間機率密度分佈。
     \item $p_i(x, \sigma, t)$：給定期初庫存 $x$，時刻 $t$ 站點庫存為 $\sigma$ 之暫態機率。
@@ -87,65 +89,61 @@
 \end{enumerate}
 \end{enumerate}
 
-\section{時變借還率預測模型}
+\section{時變借還率預測模型}\label{sec:demand_forecasting_models}
 
-\subsection{無效庫存與調度事件之理論消除}\label{subsec:nuisance_elimination_ch03}
+\subsection{從歷史無偏還原到未來需求預測之兩階段銜接}\label{subsec:ch2_to_ch3_bridge}
 
-在 TDX 開放資料平台中，站點所回傳之即時車輛數包含兩項干擾自然借還行為之非隨機雜訊：其一為長期損壞鎖死於車柱上之「故障無效車」$D_{i,d}$（涵蓋機械故障與低電量鎖定車輛）；其二為營運維運團隊以貨車進行之批次人為搬移 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$。傳統文獻多仰賴主觀經驗門檻（例如硬性設定單分鐘庫存跳躍門檻 $\theta_{\text{rebal}}$ 以切割調度，或假設連續閒置數小時即判定為故障車）。然而，如第~\ref{sec:data_sources}~節之微觀步長實證分析所示，在單小時車輛淨變動達 $|\Delta I| \ge 25$ 輛之劇烈時段中，高達 $81.5\%$ 純屬換堂尖峰高頻自然借還之連續累積；若依傳統做法粗暴剝離，將對尖峰真實需求造成嚴重誤殺。
+第~\ref{chap:Data & Latent Demand Reconstruction}~章已透過「局部庫存波谷遮罩」結合電子票證交易流水與微觀庫存快照，嚴格證明二元配對 $\left(Y^+_{i,s}, \text{Exposure}^+_{i,s}\right)$ 與 $\left(Y^-_{i,s}, \text{Exposure}^-_{i,s}\right)$ 構成識別潛在需求率之最小充分統計量，並對不可觀測之單邊截斷底線 $D_{i,s}$ 與卡車調度跳躍 $(R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s})$ 具備統計不變性。據此，我們得以在不依賴主觀故障車或調度門檻的前提下，直接算出歷史各站時之無偏觀測借還率：
+\begin{align}
+\hat{\lambda}^{\text{obs}}_{i,s} &= \frac{Y^+_{i,s}}{\text{Exposure}^+_{i,s}}, \qquad \hat{\mu}^{\text{obs}}_{i,s} = \frac{Y^-_{i,s}}{\text{Exposure}^-_{i,s}}
+\end{align}
 
-為徹底解決此一識別困境，本模型並非透過主觀門檻對原始快照進行經驗式過濾，而是直接承接第~\ref{chap:Data & Latent Demand Reconstruction}~章所推導之「局部庫存波谷包絡」與「最小充分統計量」架構：
-\begin{enumerate}
-    \item \textbf{局部庫存波谷之物理下界包絡}：考量一般車與電輔車對校園通勤者具備完全服務替代性，時點 $\tau$ 站點 $i$ 之帳面可租借總車數為 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$。由第~\ref{subsec:trough_envelope}~節之物理下界包絡定理可知，時段 $s$ 內之局部最低庫存 $b_{i,s} = \min_{\tau \in \mathcal{T}_s} I_{i,\tau}$ 在物理上必然構成無效沉澱車數 $D_{i,d}$ 之上界（$b_{i,s} \ge D_{i,d}$）。是以，真實有效可用單車總數滿足：
-    \begin{align}
-    B^{\text{eff}}_{i,\tau} &= \max\left\{0, \, I_{i,\tau} - D_{i,d}\right\}
-    \end{align}
-    當 $I_{i,\tau} > b_{i,s}$ 時，必有 $B^{\text{eff}}_{i,\tau} \ge 1$ 輛好車可供騎乘；而當帳面車數跌入波谷且無借車交易時，該段無效滯留時間將被自動自暴露時長中剔除，無須主觀估計個別車輛是否故障。
+然而，第~\ref{chap:Data & Latent Demand Reconstruction}~章所求得之 $\left(\hat{\lambda}^{\text{obs}}_{i,s}, \hat{\mu}^{\text{obs}}_{i,s}\right)$ 係針對「過去已發生且具刷卡與暴露紀錄時段」之事後還原真值，無法直接作為未來營運日或跨年度測試時段之事前輸入參數。若試圖將歷史需求單純依「站點 $\times$ 小時 $\times$ 星期幾 $\times$ 月份 $\times$ 學期 $\times$ 天氣」切分為多維查表基準，不僅格位數量遠超全年觀測筆數而產生嚴重之維度災難與資料稀疏問題，更無法因應校園教學週別相對於國曆日期之年度位移，以及過去未曾出現過之複合氣象條件。因此，承接第~\ref{subsec:ml_strict_dominance_proof}~節確立之「先結構還原、後參數預測」兩階段分工架構，本節建構暴露量校正之參數化計數迴歸模型，將日曆排程、氣象條件與站點區位特徵轉化為未來規劃時段 $t$ 之預測借還率 $\left(\hat{\lambda}^{\text{pred}}_{i,t}, \hat{\mu}^{\text{pred}}_{i,t}\right)$。
 
-    \item \textbf{調度跳躍干擾之統計不變性}：如第~\ref{sec:latent_demand_identification}~節與表~\ref{tab:red_team_scenarios}~所嚴格證明，維運貨車之批次調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 係工程作業，不產生民眾電子票證之刷卡交易流水。是以，在票證記錄之借車次數 $Y^+_{i,s}$ 與還車次數 $Y^-_{i,s}$ 中，物理上已天然不包含卡車搬移量；且由 Neyman-Fisher 因子分解定理證明之偏導數恆為零：
-    \begin{align}
-    \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial D_{i,d}} &= 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial R^{\text{in}}_{i,t}} = 0, \qquad \frac{\partial E\left[\hat{\lambda}_{i,t}\right]}{\partial R^{\text{out}}_{i,t}} = 0
-    \end{align}
-    此一性質保證了：後續時變計數模型所輸入之二元數據配對 $\left(Y^+_{i,s}, \text{Exposure}^+_{i,s}\right)$ 與 $\left(Y^-_{i,s}, \text{Exposure}^-_{i,s}\right)$，即為完全消除故障車與人為調度等潛在干擾參數後之最小充分統計量，為本章之時變佇列推導奠定嚴格無偏之輸入基礎。
-\end{enumerate}
+\subsection{空間擴散穩態下之暴露量校正可解釋計數迴歸}\label{subsec:nb_demand_regression}
 
-\subsection{暴露量校正與鄰站溢出之截斷計數迴歸}
-
-當站點庫存耗盡處於空站狀態（$B^{\text{eff}}_{i,\tau} = 0$）時，潛在欲借車之使用者將被迫放棄或轉移，使得系統觀測到之借車次數為 0；同理，當車柱全滿（$O_{i,\tau} = 0$）時，還車次數亦被強制截斷。若直接以觀測次數除以總時間計算借還率，將嚴重低估尖峰瓶頸站點之真實需求。
-
-為解決此內生截斷偏誤，本研究建立基於「未截斷有效暴露時間」之暴露量校正計數模型。在時段 $s$（時長 $\Delta t_s$）內，定義有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$：
+為量化核心外部驅動因子（學期作息、平日與假日波形切換、降雨及低溫）對校園騎乘需求之結構性影響並建立可解釋之基準預測，本小節建立暴露量校正之負二項計數迴歸模型。依據第~\ref{subsec:trough_envelope}~節之波谷包絡定義，時段 $s$（總時長 $\Delta t_s = 60$ 分鐘）內之有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$ 分別界定為：
 \begin{align}
 \text{Exposure}^+_{i,s} &= \Delta t_s - \text{EmptyMin}_{i,s} \\
 \text{Exposure}^-_{i,s} &= \Delta t_s - \text{FullMin}_{i,s}
 \end{align}
-其中 $\text{EmptyMin}_{i,s}$ 與 $\text{FullMin}_{i,s}$ 分別為時段 $s$ 內該站真實有效可用車數為 0（$B^{\text{eff}}_{i,\tau} = 0$）與滿柱（$O_{i,\tau} = 0$）之累計分鐘數。
+其中 $\text{EmptyMin}_{i,s} = \sum_{\tau \in \mathcal{T}_s} \mathbb{I}(I_{i,\tau} = b_{i,s})$ 為時段 $s$ 內帳面車數觸底滯留於局部波谷 $b_{i,s}$ 之斷貨遮蔽分鐘數，$\text{FullMin}_{i,s} = \sum_{\tau \in \mathcal{T}_s} \mathbb{I}(O_{i,\tau} = 0)$ 為滿站無空柱之累計分鐘數。模型訓練時並不直接以預先相除之比率 $\hat{\lambda}^{\text{obs}}_{i,s}$ 作為線性迴歸應變數，原因在於：
+\begin{enumerate}
+    \item 原始借還次數屬非負整數且存在過度離散，線性模型可能產生負值預測；
+    \item 當某站點於單小時內大部分時間處於斷貨狀態（例如 $\text{Exposure}^+_{i,s}$ 僅餘數分鐘）時，比率估計量 $\hat{\lambda}^{\text{obs}}_{i,s}$ 之變異數極大（$\text{Var}(\hat{\lambda}^{\text{obs}}_{i,s}) \propto 1/\text{Exposure}^+_{i,s}$），直接未加權擬合將使極端低暴露毛刺嚴重扭曲迴歸估計。
+\end{enumerate}
 
-此外，借車者若遭遇鄰近站點斷貨，會就近步行至周遭站點借車，產生跨站溢出效應。令 $N_i$ 為站點 $i$ 步行距離 \textcolor{red}{300} 公尺內之鄰近站點集合，定義鄰站空站指標變數：
-\begin{align}
-q^{\text{empty}}_{-i,s} &= \mathbb{I}\left( \sum_{j \in N_i} \text{EmptyMin}_{j,s} > 0 \right)
-\end{align}
-藉此，真實潛在借車次數 $Y^+_{i,s}$ 遵循暴露量校正之負二項計數迴歸模型（Negative Binomial Regression）：
+在空間關聯處理上，由於校園行人與騎乘者沿步道動線本就呈現連續空間擴散平衡，第~\ref{chap:Data & Latent Demand Reconstruction}~章還原出之觀測抵達強度即為當前路網擴散穩態下之真實站點需求場；且受限於票證整點截斷與事前無法預知未來鄰站是否斷貨，本研究與主流動態調度文獻一致，採單站擴散穩態抵達假設——不額外於迴歸方程中強行切割不可事前觀測之當期鄰站斷貨項，從而杜絕共同尖峰潮汐被誤估為外溢而導致未來預測低估之混淆風險。
+
+同時，為確保計量公式兼顧無共線冗餘、可解釋性與跨站型日內波形準確度，模型採用結構精簡且關鍵交互完備之對數線性規格——以「課表時段 $\times$ 站點功能群」區分捷運轉乘、教學核心與宿舍區各自迥異之早晚潮汐，並以「課表時段 $\times$ 實質工作日」精確拉開平日早八通勤與假日午後離峰波形，同時移除與工作日重疊之星期虛擬變數與單一年度冗餘之正餘弦波。以自然借車計數 $Y^+_{i,s}$ 為應變數並納入 $\log(\text{Exposure}^+_{i,s})$ 作為固定偏移項（Offset）之負二項計數迴歸結構如下：
+
 \begin{equation}
 \boxed{
 \begin{aligned}
-\log E\left[Y^+_{i,s}\right] &= \log\left(\text{Exposure}^+_{i,s}\right) + \alpha_i + \sum_{k} \gamma_k \left(\text{Slot}_k \times \text{Type}_i\right) \\
-&\quad + \beta_1 \text{Rain}_s + \beta_2 \text{Cold}_s \\
-&\quad + \beta_3 \text{Exam}_s + \beta_4 \text{FriPM}_s + \beta_5 \text{Holiday}_s + \beta_6 \text{Event}_s \\
-&\quad + \rho \cdot q^{\text{empty}}_{-i, s}
+\log E\left[Y^+_{i,s}\right] &= \log\left(\text{Exposure}^+_{i,s}\right) + \alpha_i + \sum_{k \ge 2} \gamma_{k,\,\text{Type}(i)} \, \text{Slot}_{k,s} \\
+&\quad + \sum_{k} \delta_k \left(\text{Slot}_{k,s} \times \text{Weekday}_s\right) + \phi \, \text{Semester}_s \\
+&\quad + \beta_1 \text{Rain}_s + \beta_2 \text{Cold}_s
 \end{aligned}
 }
 \end{equation}
-上述式子之所以要用暴露量校正負二項計數模型是因為借車次數是非負整數，不可能出現連續數值。如果用傳統 OLS 線性迴歸，很容易在特定時段預測出「借車 $-2.5$ 次」這種不可能的結果。
-還車端需求模型則對稱以 $\log\left(\text{Exposure}^-_{i,s}\right)$ 作為 Offset 項並納入鄰站滿位指標 $q^{\text{full}}_{-i,s}$ 估計。由最大概似法估計（MLE）所得之單位時間期望借車率與還車率即為：
+其中 $\alpha_i$ 吸收各站點固有規模，$\gamma_{k,\,\text{Type}(i)}$（剔除基準時段 $k = 1$ 以避免與站點固定效應完全共線）捕捉各區位分時段基準波形，$\delta_k$ 刻畫實質工作日對各時段波形之結構修正，$\phi, \beta_1, \beta_2$ 則分別對應學期授課、降雨與低溫之邊際倍率效果（若有明確標註考試週或大型校園活動假設檢定需求，亦可直接附列於方程右端）。還車端需求模型則對稱以 $Y^-_{i,s}$ 為應變數、$\log(\text{Exposure}^-_{i,s})$ 為 Offset 項進行最大概似估計（MLE）。
+
+於未知未來時段 $t$ 進行預測時，將特徵 $\mathbf{X}_{i,t}$ 代入擬合模型並設定完整無截斷時段長度 $\text{Exposure}^{\pm}_{\text{pred}} = \Delta t$（$60$ 分鐘），即可直接得出每分鐘單位時間預測借還率：
 \begin{align}
-\hat{\lambda}_{i,t} &= \frac{E\left[Y^+_{i,t}\right]}{\text{Exposure}^+_{i,t}} \\
-\hat{\mu}_{i,t} &= \frac{E\left[Y^-_{i,t}\right]}{\text{Exposure}^-_{i,t}}
+\hat{\lambda}^{\text{pred}}_{i,t} &= \frac{\hat{E}\left[Y^+_{i,t} \;\middle|\; \mathbf{X}_{i,t}, \, \text{Exposure}^+ = \Delta t\right]}{\Delta t} \\
+\hat{\mu}^{\text{pred}}_{i,t} &= \frac{\hat{E}\left[Y^-_{i,t} \;\middle|\; \mathbf{X}_{i,t}, \, \text{Exposure}^- = \Delta t\right]}{\Delta t}
 \end{align}
 
-\subsection{\textcolor{red}{非線性機器學習短期預測架構}}
+\subsection{時間序樣本外切分與預測準確度評估基準}\label{subsec:forecast_validation}
 
-\textcolor{red}{除可解釋性計量模型外，本研究進一步構建梯度提升決策樹（LightGBM）模型，納入前 $10$ 分鐘、前 $30$ 分鐘與前 $60$ 分鐘之滾動滯後借還量（$\text{Lag}_{10\text{m}}, \text{Lag}_{30\text{m}}, \text{Lag}_{60\text{m}}$）、校園即時氣象監測特徵與空間距離權重矩陣，進行未來 15 至 60 分鐘之高頻短期預測。在實證比較中，以均方根誤差（RMSE）與平均絕對誤差（MAE）檢驗計量還原需求與機器學習特徵預測之泛化能力。}
+為客觀驗證需求預測模型之泛化能力並杜絕時間序列資料洩漏，模型評估嚴禁對小時面板執行隨機抽樣交叉驗證，而必須採\textbf{時間序列滾動切分}（於 2024 年度內部按連續時間區塊劃分訓練與驗證集以檢定規格設定，並留存完整 2025 年度作為獨立跨年度樣本外測試集）。在誤差衡量指標上，統一以第~\ref{chap:Data & Latent Demand Reconstruction}~章波谷遮罩所還原之無偏需求率 $\left(\hat{\lambda}^{\text{obs}}_{i,s}, \hat{\mu}^{\text{obs}}_{i,s}\right)$ 作為共同地面真值，計算\textbf{以有效暴露分鐘數加權之均方根誤差與平均絕對誤差}，對比以下兩層基準模型：
+\begin{enumerate}
+    \item \textbf{歷史分組均值基準}：依「站點 $\times$ 時段 $\times$ 實質工作日 $\times$ 學期狀態」計算樣本內平均需求率作為無氣象參數基準；
+    \item \textbf{暴露校正負二項迴歸模型}：檢驗納入站點區位、平假日交互與氣象因子後之樣本外泛化誤差改善幅度。
+\end{enumerate}
+經本節驗證並選定之最優預測需求率 $\left(\hat{\lambda}^{\text{pred}}_{i,t}, \hat{\mu}^{\text{pred}}_{i,t}\right)$（於下文第~\ref{sec:birth_death_queue}~節之佇列方程與第~\ref{subsec:markov_flow_network}~至~\ref{subsec:drob_t_tracking}~節之最佳化模型中簡記為 $\hat{\lambda}_{i,t}, \hat{\mu}_{i,t}$ 或連續形式 $\hat{\lambda}_i(t), \hat{\mu}_i(t)$），隨即輸入第~\ref{sec:birth_death_queue}~節之單站非齊次生滅佇列，用以推導未受未來事後資訊污染之安全庫存區間與最適目標水位。
 
-\section{單站安全庫存區間推導}
+\section{單站安全庫存區間推導}\label{sec:birth_death_queue}
 
 \subsection{時變生滅過程與 Kolmogorov 前向微分方程組}
 
@@ -360,4 +358,4 @@ d^t_i - \ell^{*, t}_i &= \delta^{+, t}_i - \delta^{-, t}_i, \qquad \delta^{+, t}
     \item \textbf{Policy 3 目標庫存點動態調度}：晨間執行靜態貪婪配置，日間則依據第~\ref{subsec:drob_t_tracking}~節之目標庫存追蹤模型（DROB-T MIP），派遣貨車嚴格追蹤單站生滅過程最適目標水位 $\ell^{*, t}_i$，作為傳統無緩衝點追蹤調度之代表基準。
     \item \textbf{Policy 4 安全庫存區間動態調度}：本研究提出之核心完整模型。結合第~\ref{subsec:markov_flow_network}~節之全區 OD 時變馬可夫網路流動預測與第~\ref{subsec:drob_i_buffer}~節之安全庫存區間軟緩衝模型（DROB-I MIP），僅於庫存突破安全區間 $[\underline{\ell}^t_i, \bar{\ell}^t_i]$ 時進行精準干預，兼顧高服務水準與低搬運里程成本。
 \end{enumerate}
-透過橫跨 2023 年（模型校準與參數學習）與 2024 年（獨立測試與跨年度驗證）之歷史資料回測，評估各策略在不同氣候情境（晴天 vs 豪雨）、教學行事曆（一般上課日 vs 期中考試週 vs 寒暑假）下之 $\text{Score}$ 表現，驗證安全庫存區間機制在降低調度成本與消弭校園無車可借痛點上之顯著突破。
+透過橫跨 2024 年（模型校準與參數學習）與 2025 年（獨立測試與跨年度驗證）之歷史資料回測，評估各策略在不同氣候情境（晴天 vs 豪雨）、教學行事曆（一般上課日 vs 期中考試週 vs 寒暑假）下之 $\text{Score}$ 表現，驗證安全庫存區間機制在降低調度成本與消弭校園無車可借痛點上之顯著突破。
