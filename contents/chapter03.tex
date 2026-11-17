@@ -58,7 +58,7 @@
     \textcolor{red}{\item $R^{\text{in}}_{i,s}, R^{\text{out}}_{i,s}$：調度車輛對站點進行之批次補入與移出搬運量。}
     \item $\text{Weekday}_s, \text{Semester}_s$：實質工作日與學期授課期間指示變數（涵蓋開學週與期中／期末考週之完整學期期間皆設為 $1$，寒暑假為 $0$）。
     \item $\text{Opening}_s, \text{Exam}_s \in \{0, 1\}$：開學週與期中／期末考週之二元指示變數（兩者皆為 $\text{Semester}_s = 1$ 之子期間，並與單日活動指標獨立設定）。
-    \item $\text{Temp}_s, \text{Precip}_s$：時段 $s$ 之連續氣溫（${}^\circ\text{C}$）與區間降雨量（毫米）。
+    \item $\text{Temp}_s, \text{Precip}_s, \text{HUMD}_s$：時段 $s$ 之連續氣溫（${}^\circ\text{C}$）、當期小時降雨量（毫米，由第~\ref{subsec:data_preprocessing_pipeline}~節將氣象署日累積雨量 \texttt{D24R} 經 \texttt{00:10} 跨日歸零校正並正差分還原，而非日累積雨量）與大氣相對濕度（比例 $0 \sim 1$）。
     \item $\text{Event}_s \in \{0, 1\}$：校慶、杜鵑花節等大型校園活動之二元指示變數。
 \end{enumerate}
 
@@ -68,7 +68,7 @@
     \item $\hat{\lambda}^{\text{pred}}_{i,t}, \hat{\mu}^{\text{pred}}_{i,t}$：由第~\ref{sec:demand_forecasting_models}~節預測模型針對未來規劃時段 $t$ 所推估之期望借還率（下文第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章其餘各節簡記為 $\hat{\lambda}_{i,t}, \hat{\mu}_{i,t}$ 或連續時間強度 $\hat{\lambda}_i(t), \hat{\mu}_i(t)$）。
     \item $\psi_{i,\, h(s),\, \text{Weekday}_s}$：站點 $i$ 於小時 $h(s)$ 與平假日別之固定效應基準參數。
     \item $\phi_{h(s)}, \phi^{\text{open}}_{h(s)}, \phi^{\text{exam}}_{h(s)}$：隨整點小時 $h(s)$ 變化之校曆作息倍率修正係數，分別對應學期一般週（相對於寒暑假）、開學週與期中／期末考週（相對於一般上課週）之分時倍率偏移。
-    \item $\beta_1, \dots, \beta_4$：連續氣溫（一次與二次項）、對數降雨量與校園活動虛擬變數之迴歸係數。
+    \item $\beta_1, \dots, \beta_5$：連續氣溫（一次與二次項）、對數當期小時降雨量、相對濕度與校園活動虛擬變數之迴歸係數。
     \item $\eta^{\pm}_{i,s}$：借車端（$+$）與還車端（$-$）不含暴露時間偏移項 $\log(\text{Exposure}^{\pm}_{i,s})$ 之結構性線性組合（對應每分鐘條件借還率 $\lambda_{i,s} = \exp(\eta^+_{i,s})$ 與 $\mu_{i,s} = \exp(\eta^-_{i,s})$）。
     \item $P_t(i,j)$：時段 $t$ 由站點 $i$ 借車並於站點 $j$ 歸還之轉移機率矩陣。
     \item $f_{ij}(\tau)$：站點 $i$ 至站點 $j$ 之騎乘時間機率密度分佈。
@@ -107,7 +107,7 @@
 
 \subsection{單站實質抵達假設下之暴露量校正計數迴歸}\label{subsec:nb_demand_regression}
 
-為量化核心外部驅動因子（學期與開學／段考校曆作息、平日與假日波形切換、連續氣溫與降雨量及校園活動）對校園騎乘需求之結構性影響並建立可解釋之基準預測，本小節建立暴露量校正之負二項計數迴歸模型。依據第~\ref{subsec:trough_envelope}~節之波谷包絡定義，時段 $s$（總時長 $\Delta t_s = 60$ 分鐘）內之有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$ 分別界定為：
+為量化核心外部驅動因子（學期與開學／段考校曆作息、平日與假日波形切換、連續氣溫、當期小時降雨量、相對濕度及校園活動）對校園騎乘需求之結構性影響並建立可解釋之基準預測，本小節建立暴露量校正之負二項計數迴歸模型。依據第~\ref{subsec:trough_envelope}~節之波谷包絡定義，時段 $s$（總時長 $\Delta t_s = 60$ 分鐘）內之有效借車暴露分鐘數 $\text{Exposure}^+_{i,s}$ 與有效還車暴露分鐘數 $\text{Exposure}^-_{i,s}$ 分別界定為：
 \begin{align}
 \text{Exposure}^+_{i,s} &= \Delta t_s - \text{EmptyMin}_{i,s} \\
 \text{Exposure}^-_{i,s} &= \Delta t_s - \text{FullMin}_{i,s}
@@ -126,8 +126,8 @@
 \begin{aligned}
 \log E\!\left[Y^+_{i,s}\right] &= \log\!\left(\text{Exposure}^+_{i,s}\right) + \psi_{i,\, h(s),\, \text{Weekday}_s} \\
 & \quad + \phi_{h(s)} \, \text{Semester}_s + \phi^{\text{open}}_{h(s)} \, \text{Opening}_s + \phi^{\text{exam}}_{h(s)} \, \text{Exam}_s \\
-& \quad + \beta_1 \text{Temp}_s + \beta_2 \text{Temp}_s^2 + \beta_3 \log\!\left(1 + \text{Precip}_s\right) \\
-& \quad + \beta_4 \text{Event}_s
+& \quad + \beta_1 \text{Temp}_s + \beta_2 \text{Temp}_s^2 + \beta_3 \log\!\left(1 + \text{Precip}_s\right) + \beta_4 \text{HUMD}_s \\
+& \quad + \beta_5 \text{Event}_s
 \end{aligned}
 }
 \end{equation}
@@ -137,7 +137,8 @@
     \item $\psi_{i,\, h(s),\, \text{Weekday}_s}$：「站點 $\times$ 小時 $\times$ 實質工作日」固定效應，在全年高密度站時樣本下直接估計各站點於上班日與非上班日各自獨立之 $24$ 小時基準波形（若少數站點於特定深夜時段全年零交易，實務上其預測率逕設為 $0$）。
     \item $\phi_{h(s)} \, \text{Semester}_s + \phi^{\text{open}}_{h(s)} \, \text{Opening}_s + \phi^{\text{exam}}_{h(s)} \, \text{Exam}_s$：隨小時變化之多層校曆作息修正項。於完整學期期間保持 $\text{Semester}_s = 1$，使 $\phi_{h(s)}$ 衡量一般上課週相對於寒暑假之分時倍率，而 $\phi^{\text{open}}_{h(s)}$ 與 $\phi^{\text{exam}}_{h(s)}$ 則進一步刻畫開學週與期中／期末考週在不同整點小時相對於一般上課週之作息偏移，同時跨站匯集樣本以避免短短數週窗口於單站層級過度擬合。
     \item $\text{Temp}_s, \text{Temp}_s^2$：連續氣溫（${}^\circ\text{C}$）及其二次項，捕捉氣溫對騎乘意願之非線性影響並避免學期係數混淆寒暑假季節溫差。
-    \item $\log(1 + \text{Precip}_s)$：對連續區間降雨量（毫米）取對數平滑，確保無雨（$\text{Precip}_s = 0$）時項次為零，並反映微雨初期需求急降而豪雨期邊際衝擊遞減之物理特性。
+    \item $\log(1 + \text{Precip}_s)$：其中 $\text{Precip}_s$ 依第~\ref{subsec:data_preprocessing_pipeline}~節定義，係將氣象署日累積雨量 \texttt{D24R} 經 \texttt{00:10} 跨日歸零校正並以相鄰正差分還原之「當期小時降雨量（毫米）」（而非日累積雨量）；取 $\log(1 + \text{Precip}_s)$ 可確保無雨（$\text{Precip}_s = 0$）時項次為零，並反映微雨初期需求急降而豪雨期邊際衝擊遞減之物理特性。
+    \item $\text{HUMD}_s \in (0, 1]$：時段 $s$ 之大氣相對濕度（比例形式），於控制同一站點與平假日同小時基準後，捕捉雨後路面未乾、低於雨量計 $0.1\text{ mm}$ 紀錄門檻之陰雨微濕或濕悶體感氣候對騎乘意願的持續性抑制。
     \item $\text{Event}_s \in \{0, 1\}$：校慶、杜鵑花節等大型校園活動之二元指示變數，捕捉短期聚眾人潮所引發之需求增量。
 \end{enumerate}
 還車端需求模型則對稱以具正有效暴露時間（$\text{Exposure}^-_{i,s} > 0$）之還車計數 $Y^-_{i,s}$ 為應變數、$\log(\text{Exposure}^-_{i,s})$ 為 Offset 項進行最大概似估計。

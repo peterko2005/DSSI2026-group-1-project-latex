@@ -33,7 +33,7 @@
 \contentsline {subsection}{\numberline {3.2.3}時間序樣本外切分與預測準確度評估基準}{30}{subsection.3.2.3}%
 \contentsline {section}{\numberline {3.3}單站安全庫存區間推導}{31}{section.3.3}%
 \contentsline {subsection}{\numberline {3.3.1}時變生滅過程與 Kolmogorov 前向微分方程組}{31}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.3.2}首次觸及邊界時間}{31}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.2}首次觸及邊界時間}{32}{subsection.3.3.2}%
 \contentsline {subsection}{\numberline {3.3.3}\textcolor {red}{使用者不滿意度凸函數（UDF）與單站最適目標庫存}}{32}{subsection.3.3.3}%
 \contentsline {subsection}{\numberline {3.3.4}\textcolor {red}{服務水準驅動之安全庫存緩衝區間}}{33}{subsection.3.3.4}%
 \contentsline {section}{\numberline {3.4}全區時變馬可夫鏈與流動轉移}{34}{section.3.4}%
