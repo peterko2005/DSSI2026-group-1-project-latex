@@ -36,7 +36,7 @@
     \item $i, j \in S$：臺大校園周遭站點索引；$\tilde{S} = S \cup \{0\}$ 為加入校外外部虛擬節點 $0$ 之擴充集合。
     \item $v \in V$：營運調度貨車索引。
     \item $\tau \in \{1, 2, \dots, 1440\}$：1 分鐘微觀快照時間索引。
-    \item $s, t \in T$：巨觀決策規劃時段索引（每期長度 $\Delta t$）。
+    \item $s, t \in T$：巨觀決策規劃時段索引（每期長度 $\Delta t=60$）。
     \item $h(s) \in \{0, 1, \dots, 23\}$：時段 $s$ 所屬之整點小時索引。
     \item $d \in \mathcal{D}$：日曆日期索引。
     \item $\sigma \in \{0, 1, \dots, C_i\}$：站點即時庫存狀態空間。
@@ -59,7 +59,7 @@
     \item $\text{Weekday}_s, \text{Semester}_s$：實質工作日與學期授課期間指示變數（涵蓋開學週與期中／期末考週之完整學期期間皆設為 $1$，寒暑假為 $0$）。
     \item $\text{Opening}_s, \text{Exam}_s \in \{0, 1\}$：開學週與期中／期末考週之二元指示變數（兩者皆為 $\text{Semester}_s = 1$ 之子期間，並與單日活動指標獨立設定）。
     \item $\text{Temp}_s, \text{Precip}_s, \text{HUMD}_s$：時段 $s$ 之連續氣溫（${}^\circ\text{C}$）、當期小時降雨量（毫米，由第~\ref{subsec:data_preprocessing_pipeline}~節將氣象署日累積雨量 \texttt{D24R} 經 \texttt{00:10} 跨日歸零校正並正差分還原，而非日累積雨量）與大氣相對濕度（比例 $0 \sim 1$）。
-    \item $\text{Event}_s \in \{0, 1\}$：校慶、杜鵑花節等大型校園活動之二元指示變數。
+    \item $\text{Event}_s \in \{0, 1\}$：大型校園、場館與考試活動之二元指示變數（依第~\ref{subsec:data_preprocessing_pipeline}~節與表~\ref{tab:campus_event_definition}~確立之事前公開兩級清冊，對應日曆檔 \texttt{event = 1}，兩年共 $77$ 日）。
 \end{enumerate}
 
 \item 待估計計量與隨機過程參數
@@ -139,7 +139,7 @@
     \item $\text{Temp}_s, \text{Temp}_s^2$：連續氣溫（${}^\circ\text{C}$）及其二次項，捕捉氣溫對騎乘意願之非線性影響並避免學期係數混淆寒暑假季節溫差。
     \item $\log(1 + \text{Precip}_s)$：其中 $\text{Precip}_s$ 依第~\ref{subsec:data_preprocessing_pipeline}~節定義，係將氣象署日累積雨量 \texttt{D24R} 經 \texttt{00:10} 跨日歸零校正並以相鄰正差分還原之「當期小時降雨量（毫米）」（而非日累積雨量）；取 $\log(1 + \text{Precip}_s)$ 可確保無雨（$\text{Precip}_s = 0$）時項次為零，並反映微雨初期需求急降而豪雨期邊際衝擊遞減之物理特性。
     \item $\text{HUMD}_s \in (0, 1]$：時段 $s$ 之大氣相對濕度（比例形式），於控制同一站點與平假日同小時基準後，捕捉雨後路面未乾、低於雨量計 $0.1\text{ mm}$ 紀錄門檻之陰雨微濕或濕悶體感氣候對騎乘意願的持續性抑制。
-    \item $\text{Event}_s \in \{0, 1\}$：校慶、杜鵑花節等大型校園活動之二元指示變數，捕捉短期聚眾人潮所引發之需求增量。
+    \item $\text{Event}_s \in \{0, 1\}$：大型校園、場館與考試活動之二元指示變數，對應第~\ref{subsec:data_preprocessing_pipeline}~節與表~\ref{tab:campus_event_definition}~界定之事前可觀測兩級活動清冊（2024 年 $40$ 日、2025 年 $37$ 日，涵蓋全校校務典禮、體育館萬人展演與賽事、大型入學及國家考試等；實證上可進一步透過 \texttt{event\_tier} 與 \texttt{event\_scope} 檢驗分級及場館空間異質性），用以捕捉短期聚眾人潮所引發之需求增量。
 \end{enumerate}
 還車端需求模型則對稱以具正有效暴露時間（$\text{Exposure}^-_{i,s} > 0$）之還車計數 $Y^-_{i,s}$ 為應變數、$\log(\text{Exposure}^-_{i,s})$ 為 Offset 項進行最大概似估計。
 

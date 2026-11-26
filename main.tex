@@ -111,6 +111,7 @@
 \usepackage{listings}
 \usepackage{placeins}                   % 限制圖片浮動位置
 \usepackage{tikz}                       % 流程圖
+\usepackage{pgfplots}                   % 統計繪圖
 \usepackage{graphicx}
 
 \usepackage{lipsum}                     % 英文亂字
@@ -119,7 +120,12 @@
 % --------------------------------------------------
 % 套件設定（Packages Settings）
 % --------------------------------------------------
-\usetikzlibrary{shapes.geometric,arrows,positioning,arrows.meta,shadows,backgrounds}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{polar,fillbetween}
+\usetikzlibrary{shapes.geometric,arrows,positioning,arrows.meta,shadows,backgrounds,external}
+\immediate\write18{mkdir -p figures}
+\tikzexternalize[prefix=figures/]       % 將外部化圖片快取至 figures/ 資料夾
+\tikzexternaldisable                    % 預設關閉外部化，避免干擾封面浮水印與圖例小圖
 \setlist{itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt}
 
 % 內文維持左右對齊。少數段落含有幾乎沒有斷行點的長字串（程式指令名稱、連字號
