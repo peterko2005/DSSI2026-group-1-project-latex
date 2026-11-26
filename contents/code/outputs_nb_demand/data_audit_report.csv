@@ -1,0 +1,3 @@
+year,total_grid_rows,active_stations,excl_missing_trough,excl_stopped_gt0,excl_tdx_blackout_rows,excl_tdx_blackout_hours,excl_weather_na,excl_exp_rent_eq0_trough0,excl_exp_rent_eq0_trough_pos,final_valid_rent_N,excl_exp_ret_eq0_full,final_valid_ret_N,invalid_d_trips_removed
+2024,1054080,118,106434,8399,10107,89,6664,49006,119479,753991,9945,912531,0
+2025,1051200,120,18970,203,1667,14,28325,41247,209878,750910,4408,997627,3021

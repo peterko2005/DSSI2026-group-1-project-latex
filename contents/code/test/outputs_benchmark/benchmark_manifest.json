@@ -1,0 +1,42 @@
+{
+  "notebook": "demand_model_benchmark.ipynb",
+  "upstream_read_only_verified": true,
+  "derived_calendar_corrections": [
+    "2024-10-04",
+    "2025-05-01",
+    "2025-11-15"
+  ],
+  "cv_2024_selected_m17_weights": {
+    "Rent Y+": [
+      0.5,
+      0.2,
+      0.3
+    ],
+    "Return Y-": [
+      0.4,
+      0.2,
+      0.4
+    ]
+  },
+  "derived_files": [
+    "derived_data/calendar_enriched_2024_2025.csv",
+    "derived_data/panel_minute_floored_2024_2025.parquet",
+    "derived_data/station_continuous_features.csv"
+  ],
+  "recommended_academic_champion": "M16_CHAMPION_DualGraph_QMLE",
+  "recommended_production_champion": "M15b_Champ_plus_PyTorch / M17_GeoBlend_Ensemble",
+  "headline_2025_raw_oos": {
+    "rent_m02_wrmse": 0.25822533242324475,
+    "rent_m16_wrmse": 0.23495465369703022,
+    "rent_m15b_wrmse": 0.23256727010552125,
+    "ret_m02_wrmse": 0.12328948878242024,
+    "ret_m16_wrmse": 0.10272806437510243,
+    "ret_m15b_wrmse": 0.1000526453121407
+  },
+  "headline_2025_causal14d_oos": {
+    "rent_m02_wrmse": 0.2387627292552656,
+    "rent_m17_wrmse": 0.2285811860591964,
+    "ret_m02_wrmse": 0.11469933503434392,
+    "ret_m17_wrmse": 0.09882382861586222
+  }
+}
