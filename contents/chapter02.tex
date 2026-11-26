@@ -2,79 +2,332 @@
 
 \chapter{資料特徵與真實需求還原}\label{chap:Data & Latent Demand Reconstruction}
 
-\section{\textcolor{red}{資料來源與時空特徵}}\label{sec:data_sources}
-
-\textcolor{red}{（這 2.1 的數據跟數值全都要等結束後重新校正，先寫而已，然後真實的處理流程全都要記錄下來，看要怎樣刪減。）}
+\section{資料來源與時空特徵}\label{sec:data_sources}
 
 \subsection{多源異質資料集架構}\label{subsec:data_sources_overview}
 
-為精確捕捉國立臺灣大學校總區及周邊生活圈之共享單車供需動態，本研究整合四類來自政府開放資料平臺與學術機構之異質實證資料集，涵蓋微觀票證交易流水、高頻站點車位快照、局屬氣象觀測以及學術與行政日曆。各資料集之來源、觀測期間與樣本規模彙整於表~\ref{tab:data_sources_summary}，其具體結構與時空特徵說明如下：
+為完整描繪國立臺灣大學校總區及周邊生活圈（涵蓋捷運公館站、捷運臺電大樓站、捷運科技大樓站、臺灣科技大學、水源與長興學生宿舍群及溫州街生活圈）之共享單車供需動態，本研究整合四類來自政府開放資料平臺與學術機構之異質實證資料集，涵蓋 2024 年 1 月 1 日至 2025 年 12 月 31 日共兩整年（$731$ 日曆天、$17{,}544$ 小時）之微觀票證交易流水、高頻站點車位快照、氣象站逐時觀測，以及學術與行政行事曆。各資料集之來源、涵蓋期間、規模與時間解析度彙整於表~\ref{tab:data_sources_summary}，其結構特性分述如下：
 
 \begin{enumerate}
     \item \textbf{臺北市公共自行車 2.0 電子票證租借交易紀錄}：
-    取自臺北市資料大平臺按月釋出之 YouBike 2.0 票證刷卡資料，觀測期間涵蓋 2024 年 1 月至 2025 年 12 月共 24 個月份檔案，全市原始交易流水總計達 $133{,}966{,}680$ 筆（其中 2024 年為 $55{,}881{,}184$ 筆，2025 年擴增至 $78{,}085{,}496$ 筆）。每筆紀錄記載單次完成扣款旅次之借車時間（\texttt{rent\_time}）、借車站點名稱（\texttt{rent\_station}）、還車時間（\texttt{return\_time}）、還車站點名稱（\texttt{return\_station}）、精確至秒之實際騎乘歷時（\texttt{rent}，格式為 \texttt{H+:MM:SS}）以及資料歸屬日期（\texttt{infodate}）。基於去識別化隱私保護規範，官方釋出之借還時間戳記將分與秒截斷為整點（\texttt{:00:00}），提供小時級之起訖站點流量（Origin-Destination, OD）資訊。此外，該資料集於 2024 年 11 月發生結構演進：2024 年 1 月至 10 月採 6 欄位格式（未區分車種）；自 2024 年 11 月起新增第 7 欄位車種標記（\texttt{bike\_type}），始明確區分「一般車」（YouBike 2.0）與「電輔車」（YouBike 2.0E）。
+    取自臺北市資料大平臺按月釋出之 YouBike 2.0 票證刷卡資料，涵蓋 2024 年 1 月至 2025 年 12 月共 24 個月份檔，全市原始交易流水總計 $133{,}966{,}680$ 筆（2024 年 $55{,}881{,}184$ 筆、2025 年 $78{,}085{,}496$ 筆）。每筆紀錄記載借車時間（\texttt{rent\_time}）、借車站名（\texttt{rent\_station}）、還車時間（\texttt{return\_time}）、還車站名（\texttt{return\_station}）、精確至秒之騎乘歷時（\texttt{rent}，格式 \texttt{H+:MM:SS}）與歸屬日期（\texttt{infodate}）；自 2024 年 11 月起另增第 7 欄車種標記（\texttt{bike\_type}），區分一般車（YouBike 2.0）與電輔車（YouBike 2.0E），前 10 個月該欄為空字串（佔 2024 年研究區交易 $77.21\%$）。基於隱私去識別化規範，官方將借還時間戳記之分與秒統一截斷為整點（\texttt{:00:00}），故起訖站點流量（Origin-Destination, OD）僅具小時級精度，而單趟實際騎乘時間則由 \texttt{rent} 欄位提供至秒之解析度。經 120 站研究範圍「借站或還站任一端落入（OR 邏輯）」篩選後，兩年共保留 $19{,}413{,}667$ 筆旅次（2024 年 $8{,}393{,}579$ 筆、2025 年 $11{,}020{,}088$ 筆）。
 
-    \item \textbf{交通部 TDX 站點歷史車位即時快照}：
-    取自交通部運輸資料流通服務平臺（TDX）之臺北市公共自行車站點剩餘數量歷史資料（資料標準結構為 \texttt{BikeAvailability}）。2024 全閏年共計 366 個每日原始 CSV 檔案，全市累計達 $111{,}802{,}383$ 筆狀態快照。每筆快照包含 10 個原始欄位：站點唯一識別碼 \texttt{StationUID}（具 \texttt{TPE} 前綴，如 \texttt{TPE500101001}）、9 碼站點代碼 \texttt{StationID}、營運狀態碼 \texttt{ServiceStatus}、服務型態 \texttt{ServiceType}（全數為 \texttt{YouBike2}）、帳面可借車數 \texttt{AvailableRentBikes}（即 $I_{i,\tau}$）、可還空柱數 \texttt{AvailableReturnBikes}（即 $O_{i,\tau}$）、車柱設備狀態更新時間 \texttt{SrcUpdateTime}、平臺伺服器接收時間 \texttt{UpdateTime}，以及一般車數量 \texttt{GeneralBikes}（$B^{\text{gen}}_{i,\tau}$）與電輔車數量 \texttt{ElectricBikes}（$B^{\text{elec}}_{i,\tau}$）。經空間多邊形邊界篩選後，臺大周邊研究場域共涵蓋 $\left|S\right| = 86$ 個唯一站點，2024 全年共計 $8{,}112{,}511$ 筆微觀狀態紀錄。
+    \item \textbf{交通部 TDX 站點車位即時快照與站點基本資料}：
+    取自交通部運輸資料流通服務平臺（TDX）之臺北市公共自行車歷史資料，包含 2024 至 2025 年共 $731$ 個每日車位剩餘數量檔（\texttt{BikeAvailability}，2024 年 366 檔、2025 年 365 檔）以及 $730$ 個每日站點基本資料檔（提供各站座標演變與官方設置車柱數 \texttt{BikesCapacity}）。每筆車位快照記載站點唯一識別碼 \texttt{StationUID}（如 \texttt{TPE500101001}）、9 碼代碼 \texttt{StationID}、營運狀態 \texttt{ServiceStatus}、服務類型 \texttt{ServiceType}（全為 \texttt{YouBike2}）、帳面可借車數 \texttt{AvailableRentBikes}（$I_{i,\tau}$）、可還空柱數 \texttt{AvailableReturnBikes}（$O_{i,\tau}$）、設備來源更新時間 \texttt{SrcUpdateTime}、平臺接收時間 \texttt{UpdateTime}，以及一般車數（$B^{\text{gen}}_{i,\tau}$）與電輔車數（$B^{\text{elec}}_{i,\tau}$）。篩選至兩年聯集共 $|S| = 120$ 個研究範圍站點後，累計取得 $17{,}494{,}370$ 筆狀態更新紀錄（2024 年 $11{,}035{,}990$ 筆、涵蓋既有運作之 $118$ 站與 $356$ 個有資料日；2025 年隨 $2$ 座新設站點啟用擴增至完整 $120$ 站、共 $6{,}458{,}380$ 筆與 $362$ 個有資料日）。
 
-    \item \textbf{中央氣象署局屬氣象站地面觀測資料}：
-    取自 TDX 平臺彙整之中央氣象署局屬氣象站觀測資料，2024 全年 366 個日檔案各包含全臺約 86 個測站、35 個氣象觀測欄位。本研究選取距臺大校總區約 $2.5$ 公里之局屬「臺北站」（\texttt{StationID = 466920}，位於中正區公園路）作為微氣候觀測基準，而非校內自動測站「臺灣大學站」（\texttt{A0A010}）。此一選擇係基於嚴格之資料覆蓋率檢核：臺灣大學站於 2024 年 1 月 1 日至 1 月 18 日完全無觀測紀錄，且於 2 月 9 日至 2 月 16 日存在連續缺測，全年僅涵蓋 340 天；反之，臺北站具備全年 366 天完整無間斷之 10 分鐘級觀測（共 $34{,}778$ 筆紀錄，每日中位數 $96$ 筆）。經交叉驗證兩站在重疊觀測期間之表現，兩站小時氣溫之皮爾森相關係數高達 $r = 0.993$（平均溫差僅 $0.4^\circ\text{C}$），日降雨事件分類一致率達 $95\%$，證實臺北站足以高度代表臺大生活圈之天氣動態。
+    \item \textbf{中央氣象署局屬氣象站逐時地面觀測資料}：
+    取自 TDX 彙整之中央氣象署局屬氣象站每日觀測檔（2024 至 2025 年共 $731$ 檔，約每 10 分鐘更新一次）。本研究選用距臺大校總區約 $2.5$ 公里之局屬「臺北站」（\texttt{StationID = 466920}，位於中正區），而非校內自動測站「臺灣大學站」（\texttt{A0A010}），原因在於校內測站於 2024 年 1 月 1 日至 18 日及 2 月 9 日至 16 日存在大段缺測，而臺北站長期觀測穩定；經兩站重疊期間交叉比對，小時氣溫相關係數高達 $r = 0.993$（平均溫差僅 $0.4^\circ\text{C}$）、日降雨事件分類一致率達 $95\%$，足以代表臺大生活圈之天氣變化。整理後之兩年逐時氣象檔涵蓋 $17{,}544$ 個連續整點時段（$7$ 欄位），提供氣溫（\texttt{Temp}）、相對濕度（\texttt{HUMD}）、當日累積雨量（\texttt{D24R}）、雨跡標記（\texttt{D24R\_trace}）、降雨指示（\texttt{rain}）及當小時降雨量（\texttt{rain\_1h\_mm}）。
 
-    \item \textbf{學術行事曆與行政院人事行政總處辦公日曆表}：
-    結合國立臺灣大學教務處公告之 112 學年度第 2 學期（2024-02-19 至 2024-06-09）與 113 學年度第 1 學期（2024-09-02 至 2024-12-20）行事曆，以及行政院人事行政總處公告之 2024 年政府行政機關辦公日曆表，建構研究場域專屬之日曆屬性表（\texttt{calendar\_2024.csv}，共 $366$ 日 $\times 5$ 欄位）。該表精確標記每日之星期代碼（\texttt{day\_of\_week}）、是否為實質上班上課日（\texttt{weekday}）、是否處於學期授課期間（\texttt{semester}）及放假或補班事由（\texttt{day\_off\_reason}）。2024 全年 366 天中，共包含 $244$ 個實質上班日（已扣除春節、清明、端午、中秋、國慶等國定假日與凱米、山陀兒、康芮三次颱風停班停課共 $19$ 個平日，並納入 2 月 17 日彈性補班日）與 $122$ 個非上班日；學期授課期間共 $222$ 天（含 $150$ 個學期中上班上課日），寒暑假期間則為 $144$ 天。
+    \item \textbf{學術行事曆、行政辦公日曆表與大型活動事件表}：
+    整合國立臺灣大學 112 學年度第 2 學期至 114 學年度第 1 學期共四個學期之教務行事曆、行政院人事行政總處 2024 至 2025 年辦公日曆表，以及臺大校內場館、商業售票、全國考場與周邊聚眾設施之事前公開檔期，建置研究場域專屬之逐日屬性表（\texttt{calendar\_2024.csv} 與 \texttt{calendar\_2025.csv}，合計 $731$ 日、$9$ 欄位）。除標記星期代碼（\texttt{day\_of\_week}）、實質上班上課日（\texttt{weekday}，已排除國定假日與 2024 年凱米、山陀兒、康芮等 $6$ 日颱風停班停課，並納入年度補班日）及放假事由（\texttt{day\_off\_reason}，非放假日統一編碼為 \texttt{0}）外，更依實證騎乘量變化於各學期前後加入過渡緩衝期，並以四層事前可觀測管道建置大型活動欄位（\texttt{event}、\texttt{event\_tier}、\texttt{event\_scope} 與 \texttt{event\_name}，無活動日統一編碼為 \texttt{0}；詳見第~\ref{subsec:data_preprocessing_pipeline}~節與表~\ref{tab:campus_event_definition}）。兩年合計包含 $491$ 個實質工作日（2024 年 $244$ 日、2025 年 $247$ 日）、$478$ 個學期日（2024 年 $240$ 日、2025 年 $238$ 日，其中學期中實質工作日共 $321$ 日），以及 $77$ 個大型活動日（2024 年 $40$ 日、2025 年 $37$ 日）。
 \end{enumerate}
 
 \begin{table}[htbp]
 \centering
-\caption{研究採用之多源異質實證資料集規模與特徵彙整表}
+\caption{研究採用之多源異質實證資料集規模與特徵彙整表（2024--2025 年）}
 \label{tab:data_sources_summary}
 \small
-\setlength{\tabcolsep}{2.0pt}
-\begin{tabular}{@{} l c r r l @{}}
+\setlength{\tabcolsep}{2.4pt}
+\begin{tabular}{@{} l c r r >{\raggedright\arraybackslash}p{3.7cm} @{}}
 \toprule
-\textbf{資料集名稱} & \textbf{期間} & \textbf{原始規模} & \textbf{研究區規模} & \textbf{時間解析度} \\
+\textbf{資料集名稱} & \textbf{期間} & \textbf{原始規模} & \textbf{研究區規模} & \textbf{解析度與主要產出} \\
 \midrule
-1. YouBike 票證紀錄 & 2024--25 & $133{,}966{,}680$ 筆 & $86$ 站旅次 & 1 小時（歷時至秒） \\
+1. YouBike 票證交易 & 2024--25 & $133{,}966{,}680$ 筆 & $19{,}413{,}667$ 筆 & 整點小時（歷時至秒）；$2{,}105{,}280$ 站時 \\
 \addlinespace[3pt]
-2. TDX 車位快照 & 2024 年 & $111{,}802{,}383$ 筆 & $8{,}112{,}511$ 筆 & 變動觸發（中位 $1.9$ 分） \\
+2. TDX 車位與站點檔 & 2024--25 & $731$ 日全市檔 & $17{,}494{,}370$ 筆 & 變動觸發；連續雙向暴露 $2{,}105{,}280$ 站時 \\
 \addlinespace[3pt]
-3. 氣象署臺北站觀測 & 2024 年 & $366$ 日全臺檔 & $34{,}778$ 筆 & 10 分（對齊 15/60 分） \\
+3. 氣象署臺北站觀測 & 2024--25 & $731$ 日全臺檔 & $17{,}544$ 小時 & 約 10 分鐘彙整至逐時 \\
 \addlinespace[3pt]
-4. 學術與行政行事曆 & 2024 年 & $366$ 日曆天 & $244$ 上班/$222$ 學期 & 1 日（含颱風與補班） \\
+4. 行事曆與大型活動表 & 2024--25 & $731$ 日曆天 & $491$ 工作/$77$ 活動 & 逐日 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{資料前處理與時空網格正則化管線}\label{subsec:data_preprocessing_pipeline}
+\subsection{資料取得與多階段工程前處理管線}\label{subsec:data_preprocessing_pipeline}
 
-由於政府開放資料在原始採集過程中存在採樣頻率改變、網路傳輸延遲、未記載狀態碼及特定日期缺檔等工程雜訊，若直接投入計量模型將引發嚴重之對齊偏誤。為此，本研究建置四階段可重現之資料前處理與時空網格正則化管線：
+政府開放資料在長期採集過程中常伴隨站名截斷、編碼損毀、採樣頻率漂移、傳輸延遲、局部斷線以及跨表時間口徑不一致等實務雜訊。本研究之資料工程管線採取「上游只做可逆正規化與明確標記、保留原始異常證據、下游依模型需求執行一致化篩選」之原則，建構五階段可重現前處理流程：
 
 \begin{enumerate}
-    \item \textbf{第一階段：研究場域空間拓撲篩選與實體欄位校正}
+    \item \textbf{第一階段：研究場域空間界定與站點演變追蹤}
     \begin{enumerate}[label = \textbullet]
-        \item \textbf{空間多邊形邊界定義與編碼檢核}：依據 WGS84 座標系（CRS 4326）定義由 $13$ 個頂點構成之封閉空間多邊形（涵蓋臺大校總區教學區、捷運公館站、捷運科技大樓站、長興街與基隆路男一/男六/男八舍宿舍群、溫州街生活圈及辛亥路/新生南路廊道），自全市站點中精確篩選出落於多邊形內之 $86$ 個唯一站點（因 3 個站點於年內微幅調整路側座標，於空間底圖中對應 $89$ 筆站點位置紀錄）。同時，針對票證刷卡資料中發現之 $218{,}870$ 筆（佔 $0.1634\%$）含 UTF-8 編碼異常（\texttt{U+FFFD} 替換字元）紀錄進行交叉比對，確認該批異常站名全數位於北投、士林等研究場域外，對本研究樣本造成零污染。
-        \item \textbf{未記載營運狀態碼還原與時間戳記對齊}：TDX 原始快照之 \texttt{ServiceStatus} 欄位除官方文件定義之「正常營運」（$8{,}092{,}327$ 筆）外，出現未定義之數值代碼 \texttt{"2"}（共 $20{,}184$ 筆，涉及 $38$ 個站點）。經比對官方停用公告與站點車數分佈（代碼 \texttt{"2"} 期間平均可借車數仍達 $1.50$ 輛，並非單純空站），確認其為「停止營運（暫停服務）」並完成重編碼。此外，由於平臺接收時間 \texttt{UpdateTime} 相較於車柱設備感測時間 \texttt{SrcUpdateTime} 存在中位數 $24$ 秒之傳輸延遲（最大延遲達 $9{,}093$ 秒，且有 $4{,}187$ 筆出現時序倒置），所有時序排列與差分運算皆嚴格以 \texttt{SrcUpdateTime} 為唯一時間基準。
-        \item \textbf{車種跨期口徑統一與動態容量識別}：檢核 TDX 快照發現，帳面可借總車數恆等式 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$ 在 $8{,}112{,}511$ 筆紀錄中僅 $2$ 筆存在 $1$ 輛之瞬時誤差（一致率達 $99.99998\%$）。為與 2024 年前 10 個月未分車種之票證資料保持跨期口徑一致，本研究將一般車與電輔車合併計算帳面總庫存 $I_{i,\tau}$。同時，實證檢視發現同站點之「可借車數 $+$ 可還空柱數」（$I_{i,\tau} + O_{i,\tau}$）並非定值，而會隨個別車柱硬體鎖定或斷電而動態縮減，故站點物理總容量 $C_i$ 一律取自站點基本資料表（\texttt{stations\_in\_field.csv}），空柱狀態則直接採用快照實測之 $O_{i,\tau}$。
+        \item \textbf{多邊形篩選與生活圈邊界擴充}：為完整囊括臺大校園與高強度轉乘生活圈，管線首先自 $730$ 份每日 TDX 站點主檔彙整站點歷史位置，在 WGS84 座標系（CRS 4326）下透過 13 頂點封閉多邊形篩選出涵蓋校總區教學區、捷運公館站、捷運科技大樓站、長興與基隆路宿舍群及溫州街沿線之 $87$ 個站點；再依旅次起訖缺口檢核，分兩批以 \texttt{StationUID} 人工補入緊鄰多邊形外緣之 $33$ 個高互動站點（包含水源校區與宿舍群、復興南路二段、溫州公園、羅斯福路三段，以及臺灣科技大學三處校門、捷運臺電大樓站四處出口、大安運動中心與停車場、臺大永齡生醫工程館與和平臥龍街口），最終確立兩年研究範圍共 $|S| = 120$ 個站點：2024 年既有運作站點為 $118$ 站，2025 年再隨「臺大人文館」（\texttt{500119097}，2025 年 2 月 4 日啟用）與「羅斯福路三段283巷」（\texttt{500101265}，2025 年 10 月 10 日啟用）兩站新設啟用而加入研究範圍，使 2025 年總運作站數擴增至 $120$ 站。
+        \item \textbf{路側移位紀錄與多對一關聯控管}：受限於工程施工或路側微調，研究範圍內共有 $5$ 個站點（大安運動中心停車場、捷運科技大樓站（台北教育大學）、臺大禮賢樓東南側、臺大女九舍西南側、臺大鄭江樓北側）在兩年間曾調整座標，故站點主檔 \texttt{stations\_in\_field.csv} 實際記為 $125$ 筆「站點 $\times$ 位置」紀錄。下游進行空間圖繪或屬性合併前，皆先依 \texttt{StationID} 去重壓回 $120$ 筆唯一鍵，避免資料列倍增。
     \end{enumerate}
 
-    \item \textbf{第二階段：變動觸發快照之時空網格正則化與三項防禦遮罩}
+    \item \textbf{第二階段：票證交易流水清洗、分組編碼與小時流量彙總}
     \begin{enumerate}[label = \textbullet]
-        \item \textbf{採樣機制結構性轉換與缺檔日盤點}：深度剖析 TDX 歷史資料發現，2024 年 1 月 1 日至 1 月 13 日期間，系統採「固定約 1 分鐘定時推播」機制（研究區每日約 $10$ 萬筆紀錄，最高達 $113{,}241$ 筆/日，1 月份單月即佔 $1{,}559{,}796$ 筆）；自 2024 年 1 月 14 日起，TDX 改採「狀態變動觸發記錄」機制，僅於站點可借車數或空柱數發生改變時寫入新快照（相鄰紀錄時間間隔中位數為 $1.9$ 分鐘，第 $90$ 百分位數為 $10.0$ 分鐘，研究區每日中位數降至 $21{,}028$ 筆）。此外，2024 全年 366 個原始日檔中，有 $10$ 天存在平臺端全區缺檔（含 10 月 31 日、11 月 2 日、11 月 7 日至 10 日共 $6$ 個 $0\text{ byte}$ 空檔，以及 11 月 1 日、11 月 3 日、11 月 11 日、12 月 10 日共 $4$ 個於研究場域內無紀錄之殘缺檔），實際有效觀測日為 $356$ 天。
-        \item \textbf{平衡面板建立與前向填補防禦規則}：在變動觸發機制下，「無新快照寫入」在物理上即代表「站點車位狀態維持原狀」。基於此特性，本研究建立涵蓋 $86$ 個站點之雙尺度規則時空網格——包含小時級平衡面板（$86 \times 8{,}784 = 755{,}424$ 站時）與 15 分鐘級平衡面板（$86 \times 35{,}136 = 3{,}021{,}696$ 站時段）——並以各網格時點 $t$ 前最近一筆有效快照（$\text{\texttt{SrcUpdateTime}} \le t$）執行最後觀測值前向填補。為嚴防將缺檔日或設站前之無效狀態錯誤延續，管線強制實施三項不延續遮罩（將該網格設為 \texttt{NA}）：（1）\texttt{no record yet}：網格時點早於該站點首次出現觀測紀錄之時刻（如 2024-01-01 00:00 首筆快照為 00:01，或年內新設之 $6$ 個站點於啟用前之時段，最晚啟用者為 \texttt{TPE500106135} 於 10 月 15 日設站）；（2）\texttt{no-data day}：前向填補區間跨越上述 $10$ 個 TDX 平臺缺檔日之任何時段；（3）\texttt{stale > 24h}：距離最近一筆快照之狀態滯留時間（\texttt{status\_age\_min}）超過 $1{,}440$ 分鐘（24 小時）。經此嚴格過濾後，小時級與 15 分鐘級面板分別保留 $691{,}342$ 筆與 $2{,}765{,}475$ 筆有效觀測，有效覆蓋率皆達 $91.5\%$，且狀態滯留時間中位數僅 $6.8$ 分鐘。
+        \item \textbf{站名截斷修復與亂碼可逆保留}：檢核 2024 年 1 月至 2025 年 1 月原始票證檔時，發現「捷運科技大樓站(台北教育大學)」（\texttt{500101166}）遭系統截去右括號而記為 \texttt{捷運科技大樓站(台北教育大學}，若未處理將導致該站與範圍外往來旅次遭誤濾。管線於篩選前先行還原完整站名，統一加上 \texttt{YouBike2.0\_} 前綴並對應 9 碼 \texttt{StationID}；對於原始檔中偶發之損毀 UTF-8 位元組（2024 年 $1{,}041$ 格、2025 年 $144$ 格），則以 \texttt{<UNRESOLVED\_UTF8\_HEX:...>} 可逆編碼保留原位元並與範圍外及空白站名一併標記代碼 \texttt{-1}，不任意臆測或靜默刪除。
+        \item \textbf{四類旅次拆解與原始異常留存}：所有研究區旅次均依起訖結構標註 \texttt{trip\_group} 欄位，分為外借區內還（\texttt{a} 組，$3{,}510{,}166$ 筆）、區內借外還（\texttt{b} 組，$3{,}925{,}503$ 筆）、區內互流（\texttt{c} 組，$11{,}974{,}977$ 筆）及同站 3 分鐘內短時還車（\texttt{d} 組，$3{,}021$ 筆）。其中需特別留意跨期口徑差異：臺北市原始資料於 2025 年 7 月以前並未釋出 5 分鐘內之同站借還紀錄，\texttt{d} 組僅出現於 2025 年 8 月之後，故不可作為跨年比較指標。同時，交易主檔忠實保留極端騎乘時長（$\le 1$ 分鐘或 $> 4$ 小時，最長一筆達 10 年）、1 筆誤植還車年分為 \texttt{2034-08-26} 之紀錄及全欄完全重複列（2024 年 $78{,}395$ 列、2025 年 $83{,}281$ 列），交由下游依任務性質（如推估騎乘時間分佈 $f_{ij}(\tau)$ 時進行截尾）採一致標準濾除。
+        \item \textbf{平衡小時流量面板與開放網路結構}：由清洗後之 v7 交易檔彙總建置平衡之站點小時流量表（\texttt{youbike\_station\_\allowbreak hourly\_flow\_2024\_2025.parquet}，共 $120 \times 17{,}544 = 2{,}105{,}280$ 站時，時間鍵 \texttt{datetime} 定義為該小時起點 $[h, h+1)$）。兩年合計錄得借出 $15{,}903{,}501$ 筆（區內互流 $11{,}974{,}977$ 筆、流出區外 $3{,}925{,}503$ 筆、無效短借 $3{,}021$ 筆）與還入 $15{,}488{,}082$ 筆（區內互流 $11{,}974{,}933$ 筆、區外流入 $3{,}510{,}128$ 筆、無效短還 $3{,}021$ 筆；另有 $82$ 筆跨入 2026 年元旦凌晨或錯誤年份之還車未落入格點），總借還交易量達 $31{,}391{,}583$ 筆（單站單小時平均 $14.91$ 筆、中位數 $6$ 筆、最高達 $575$ 筆）。由此亦可見，來自研究區外之還車（\texttt{return\_from\_outside}）佔全區總還車量達 $22.66\%$，構成不可忽略之開放網路外生流入，亦為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章轉移機率矩陣（\texttt{transition\_probs.parquet}）與網路流模型之關鍵實證依據。
     \end{enumerate}
 
-    \item \textbf{第三階段：微觀步長差分與自然尖峰累積特徵檢驗}
+    \item \textbf{第三階段：TDX 快照正規化、採樣率漂移診斷與連續時間雙向暴露重建}
     \begin{enumerate}[label = \textbullet]
-        \item \textbf{微觀步長分佈與流量守恆檢驗}：對各站點依 \texttt{SrcUpdateTime} 排序後之 $8{,}112{,}425$ 個相鄰微觀步長計算單步庫存差分 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$（嚴格排除跨缺檔日與間隔超過 24 小時之無效步長）。實證分佈顯示，高達 $99.9\%$ 之微觀步長滿足 $|\Delta I_{i,\tau}| \le 9$（$|\Delta I_{i,\tau}| \ge 10$ 之大步長跳躍僅佔全部步長之 $0.082\%$）。
-        \item \textbf{尖峰高頻自然借還與卡車調度之實證辨析}：若以傳統文獻常用之經驗門檻 $\theta_{\text{rebal}} = 10$ 輛進行探索性拆解，在全年 $684{,}702$ 個正常營運有效站時中，僅 $5{,}537$ 個站時曾發生 $|\Delta I_{i,\tau}| \ge 10$ 之批次調度（全年累計調度移出入共 $85{,}975$ 輛，以捷運公館站 2 號出口 \texttt{TPE500101022} 之 $20{,}385$ 輛與 3 號出口 \texttt{TPE500101181} 之 $11{,}968$ 輛居冠）。更關鍵之實證發現為：在單小時淨流量絕對值達 $|\Delta I_{i,s}| \ge 25$ 輛之 $7{,}193$ 個劇烈變動站時中，僅 $18.5\%$（$1{,}330$ 個站時）包含卡車批次調度，其餘高達 $81.5\%$（$5{,}863$ 個站時）完全是由高頻率之自然借還（單小時中位數達 $33$ 次狀態更新、單步中位數變動 $6$ 輛）在換堂與通勤尖峰累積而成。此一實證特徵有力印證了第~\ref{sec:latent_demand_identification}~節之方法論主張：依賴固定庫存變動門檻切割調度與需求將嚴重誤傷尖峰自然流量，必須結合票證交易流水與局部波谷遮罩方能實現無偏識別。
+        \item \textbf{狀態碼轉譯、時序校準與動態車柱識別}：針對兩年 $17{,}494{,}370$ 筆研究區 TDX 快照，首先將未列於官方規格文件之 \texttt{ServiceStatus} 代碼 \texttt{"2"}（2024 年 $20{,}968$ 筆、2025 年 $54$ 筆）對照平臺定義轉譯為「停止營運」（停止營運期間帳面仍殘留平均 $1.6$ 至 $1.9$ 輛車，須於下游以 \texttt{minutes\_stopped == 0} 濾除）。其次，因平臺接收時間 \texttt{UpdateTime} 較設備來源時間 \texttt{SrcUpdateTime} 普遍落後中位數 $24$ 至 $29$ 秒，且分別有 $5{,}553$ 筆（2024 年）與 $16{,}156$ 筆（2025 年）發生時序倒置（最大落差近 $3.9$ 小時），所有狀態排序與停留時長計算一律以 \texttt{SrcUpdateTime} 為準。此外，帳面總車數恆等式 $I_{i,\tau} = B^{\text{gen}}_{i,\tau} + B^{\text{elec}}_{i,\tau}$ 在兩年間僅 2024 年出現 $2$ 筆瞬時差 1 輛之例外，故直接合併為總庫存以對齊前期票證口徑。尤為關鍵的是，比對 730 日官方設置柱數 \texttt{BikesCapacity}（2024 年有 $27$ 站、2025 年有 $10$ 站曾動態增減柱數）與即時「可借 $+$ 可還」實際運作車柱數 $I_{i,\tau} + O_{i,\tau}$ 後發現，在全體正常營運站時中，分別有 $14.68\%$（2024 年）與 $23.52\%$（2025 年）之時段存在車柱故障或鎖定導致實際運作柱數低於官方柱數；若改以官方 \texttt{BikesCapacity} 判斷滿站將漏判大量真實無位可還情境，故本管線一律以 $O_{i,\tau} = 0$（即可還空柱歸零）界定滿站截斷。
+        \item \textbf{跨年度採樣頻率結構漂移與經驗門檻調度法之失效實證}：深度檢核兩年 TDX 快照揭示兩次顯著之系統採樣機制變化：其一為 2024 年 1 月 1 日至 13 日採約每分鐘定時輪詢（研究區日均約 14 萬列），自 1 月 14 日起改為狀態變動觸發紀錄（中位更新間隔約 2 分鐘、第 90 百分位約 10 分鐘，每日中位數降至 $28{,}461$ 列）；其二為 2025 年 4 月起資料更新密度大幅轉稀，單站每小時平均更新次數由 2024 年之 $10\text{--}12$ 筆驟降至 $2.7\text{--}4.6$ 筆（12 月更新間隔中位數拉長至 7 分鐘、第 90 百分位達 50 分鐘，全年每日中位數降至 $12{,}404$ 列，不及 2024 年一半）。此一採樣漂移直接暴露傳統單步差分調度門檻（\texttt{youbike\_flow\_hourly} 所採之 $|\Delta I_{i,\tau}| \ge 10$ 輛）的結構脆弱性：在 2024 年高頻更新下，被該門檻歸類為卡車調度之搬運量僅佔全區庫存變動量之 $0.34\%\text{--}3.15\%$（僅 $0.70\%$ 正常站時觸發）；然而 2025 年 4 月之後，因多趟自然借還被壓縮合併於單一稀疏更新步長中，同套門檻竟將高達 $13.85\%\text{--}24.40\%$ 之流量（12 月達 $24.40\%$）誤判為貨車調度。此項實證結果強力支撐第~\ref{sec:latent_demand_identification}~與~\ref{sec:demand_reconstruction}~節放棄經驗差分門檻、改以「票證刷卡流水搭配連續時間波谷暴露」進行無偏需求還原之核心方法論。
+        \item \textbf{連續時間波谷與滿站暴露重建（\texttt{youbike\_trough\_hourly}）}：取代早期粗糙之固定網格抽樣，最新管線針對每個平衡站時 $[h, h+1)$，取整點前最近有效快照作為期初狀態，並串聯該小時內所有 \texttt{SrcUpdateTime} 變動點，以分段常數軌跡精確積分連續分鐘數，同步產出借車端之局部庫存波谷 \texttt{trough\_bikes}（$b_{i,s}$）、波谷停留時間 \texttt{minutes\_at\_trough} 與借車有效暴露時間 \texttt{exposure\_rent\_min}（$= 60 - \texttt{minutes\_at\_trough}$），以及還車端之滿站時間 \texttt{minutes\_full}（$O_{i,\tau} = 0$）與還車有效暴露時間 \texttt{exposure\_return\_min}（$= 60 - \texttt{minutes\_full}$，兩年正常站時均值分別達 $56.75$ 與 $57.86$ 分鐘）。上游先實施三道不延續防呆遮罩——設站前或年度首小時無快照（\texttt{no record yet}）、跨全天缺檔日（\texttt{no-data day}，2024 年 10 天、2025 年 3 天）及單站逾 24 小時未更新（\texttt{stale > 24h}，涵蓋如 2025 年和平東路二段90巷停傳 56 日與臺大獸醫館南側停傳 18 日之單站中斷）——使 2024 年保留 $947{,}646$ 個可用站時（$89.90\%$）、2025 年保留 $1{,}032{,}230$ 個可用站時（$98.20\%$）。
     \end{enumerate}
 
-    \item \textbf{第四階段：氣象異常碼清洗與跨日累積雨量校正}
+    \item \textbf{第四階段：氣象異常碼清洗、逐時雨量還原與日曆暨大型活動界定}
     \begin{enumerate}[label = \textbullet]
-        \item \textbf{異常代碼轉譯與雨跡識別}：針對中央氣象署臺北站（\texttt{466920}）之 $34{,}778$ 筆 10 分鐘觀測紀錄，首先將儀器檢修或通訊中斷代碼 \texttt{-99} 轉為缺漏值 \texttt{NA}（氣溫與相對濕度各 $54$ 筆、日累積雨量 $221$ 筆）。其次，針對日累積雨量欄位（\texttt{D24R}）出現之特殊代碼 \texttt{-990}（共 $5{,}998$ 筆，代表降水量低於 $0.1\text{ mm}$ 之微量「雨跡」），單獨建立布林指標 \texttt{D24R\_trace = TRUE} 並將數值歸零，避免負值代碼扭曲後續計數迴歸之降雨係數。
-        \item \textbf{跨日歸零時間差校正與區間雨量還原}：由於氣象署自動雨量計係於每日 \texttt{00:10} 始執行跨日歸零，每日 \texttt{00:00} 之觀測讀數實為前一日之最終總累積雨量。管線透過將觀測時間減去 1 秒以對齊真實降雨歸屬日，再由單日累積雨量曲線之正差分還原出各 60 分鐘與 15 分鐘網格之真實區間降雨量（\texttt{precip\_mm}）與降雨二元指標（\texttt{is\_rainy}，2024 全年共計 $853$ 個降雨小時，佔比 $9.8\%$），最終透過時間鍵值與站點車位面板完成無縫接合。
+        \item \textbf{氣象觀測清洗與逐時降雨差分}：針對臺北站（\texttt{466920}）原始觀測，管線將儀器異常碼 \texttt{-99} 轉為缺值 \texttt{NA} 且不進行人工插補（兩年共 $17{,}544$ 小時中，氣溫與濕度缺 $201$ 小時，其中 2024 年 $46$、2025 年 $155$；\texttt{D24R} 缺 $309$ 小時）；將代表未達雨量計 $0.5\text{ mm}$ 解析度之微量雨跡代碼 \texttt{-990} 獨立標記為 \texttt{D24R\_trace = TRUE} 並令數值為 $0$。由於氣象署日累積雨量於每日 \texttt{00:00} 仍記載前一日總量、\texttt{01:00} 始重新起算，管線於同一累積日內對相鄰整點 \texttt{D24R} 執行正差分（\texttt{01:00} 直接取當期 \texttt{D24R}），還原連續之當期小時降雨量 \texttt{rain\_1h\_mm}（兩年共 $1{,}763$ 個降雨小時、$1{,}490$ 個小時具可測降雨量，最大時雨量達 $54.5\text{ mm}$；缺值 $327$ 小時）。
+        \item \textbf{實證驅動之學期緩衝邊界延伸}：檢視四學期（112-2 至 114-1）開學前後與期末考後之全區每日借還量走勢發現，開學前週末之騎乘水準即已回升至學期常態，而期末考結束後約需一週時間始完全回落至寒暑假基線。據此，\texttt{calendar\_semester\_buffer.R} 腳本將各學期之 \texttt{semester = 1} 標記系統性往前延伸 2 日、往後延伸 7 日，使學期作息指標更貼合實際校園人潮切換時點；第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章計數迴歸亦於此基礎上進一步疊加開學週、考週與大型活動標記。
+        \item \textbf{大型活動（$\text{Event}_s$）之事前記錄管線、雙軸界定準則與排除邊界}：為防止第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章需求預測模型發生時間序列資料洩漏，所有納入 $\text{Event}_s$ 之日期皆嚴格要求來自「活動舉行前即已對外公開之事前管道」。在操作型定義上，本研究參照《臺北市大型群聚活動安全管理自治條例》與《國立臺灣大學校總區及水源校區戶外場地租借管理要點》之法定規模門檻（聚眾達 $1{,}000$ 人且持續 $2$ 小時須報備並附交通維管計畫、達 $3{,}000$ 人須專案聯審），並結合「人數規模 $\times$ 空間移動型態」雙軸判準，透過四層事前公開管道彙整全場域活動：
+        \begin{enumerate}
+          \item \textbf{臺大校方場館與行政系統}（教務處行事曆、體育室場地租借系統 \texttt{rent.pe.ntu.edu.tw} 主球場專案封館公告、學生活動中心與總務處戶外場地）；
+          \item \textbf{商業售票與全國賽事專網}（KKTIX、Ticket Plus、ibon、tixCraft、FamiTicket 等以「臺大綜合體育館」檢索之演藝與格鬥檔期、CWT 官網及中華民國排球協會賽程）；
+          \item \textbf{大型入學、語言與國家考場公告}（臺大碩士班筆試與暑假轉學考、考選部司律二試與地方特考臺大試區、校內 LTTC 主辦之 JLPT 日檢）；
+          \item \textbf{場域內鄰近聚眾節點}（研究範圍 $120$ 站涵蓋之臺灣科技大學、國北教大校慶與畢業典禮，以及臺北自來水園區大型節慶開幕免費入園日）。
+        \end{enumerate}
+        據此，將所有合規活動寫入逐日日曆，新增二元指標 \texttt{event}（$0/1$）、分級 \texttt{event\_tier}（第一級核心高衝擊 \texttt{1}、第二級重要場館與考試 \texttt{2}、無活動 \texttt{0}）、空間影響範疇 \texttt{event\_scope}（全校擴散型 \texttt{campus}、場館局部型 \texttt{venue}、兩者兼具 \texttt{both} 或 \texttt{0}）及活動名稱 \texttt{event\_name}（無活動記為 \texttt{0}），並將 \texttt{day\_off\_reason} 非放假日統一補為 \texttt{0} 以消除缺值。相對地，未達法定千人門檻或侷限於單館定點且實證無顯著騎乘外溢之中小型活動（例如 2024 年 10 月 12 日於體育館舉辦、限額 $300$ 隊共 $900$ 人之遊戲王 OCG 團體賽，以及單場規模較小且未造成顯著滿站截斷之部分粉絲見面會）、家長多以汽車接送之常規高中大考（學測次日與分科測驗）與單純系所小型講座皆予以排除，以免稀釋迴歸估計效果。兩年共確立 $77$ 個大型活動日（2024 年 $40$ 日、2025 年 $37$ 日，含第一級 $37$ 日與第二級 $40$ 日；依空間範疇分為 \texttt{campus} $13$ 日、\texttt{venue} $35$ 日與 \texttt{both} $29$ 日），詳細分類與完整日期彙整於表~\ref{tab:campus_event_definition}。
+    \end{enumerate}
+
+    \item \textbf{第五階段：跨表整合對齊規範與品質稽核防呆機制}
+    \begin{enumerate}[label = \textbullet]
+        \item \textbf{跨表時間區間方向校準}：所有 YouBike 小時面板（流量表與波谷表）之時間鍵 \texttt{datetime} 均採字元格式且指向區間起點 $[h, h+1)$；相對地，逐時氣象表 \texttt{weather\_taipei\_\allowbreak hourly\_2024\_2025.parquet} 之 \texttt{datetime} 為時區時間戳且指向前一時段終點 $(t - 60\text{ 分}, t]$。跨表併接前必須先將氣象時間鍵減去 1 小時並統一格式，使 $(h, h+1]$ 之天氣觀測精確對應 $[h, h+1)$ 之騎乘行為，避免一小時之系統性錯位。
+        \item \textbf{跨源對帳防呆與邊界情境控管}：將 TDX 狀態更新總數與票證刷卡實借量進行逐時交叉對帳後，本團隊進一步識別出三類須於下游建模階段嚴格把關之邊界情境：
+        \begin{enumerate}
+          \item \textbf{同日局部系統斷線與無資料日零點邊界}——TDX 於 2024 年約 $75$ 小時（如 2024 年 11 月 6 日 13 至 23 時全區實借逾兩萬趟卻零更新）及 2025 年 $4$ 小時出現 3 至 17 小時不等之全區集體中斷（經核對皆非颱風假），以及各 \texttt{no-data day} 當天 \texttt{00:00} 誤延用前晚狀態，下游透過「全區更新數極低卻與實借數顯著矛盾」之跨源遮罩予以剔除；
+          \item \textbf{有效營運篩選口徑}——由於靜態欄位 \texttt{in\_service} 一經啟用即不回轉（例如臺大共同教室北側 2024 年 1 至 5 月實質未投入營運卻標為 $1$），下游分析一律改採 \texttt{!is.na(trough\_bikes)} 且 \texttt{minutes\_stopped == 0} 作為有效樣本條件；
+          \item \textbf{正庫存零變動時段（常數水位）}——當站點整小時皆有車可借但恰無狀態更新時（2024 年佔正常站時 $13.66\%$、2025 年受更新變稀影響升至 $20.66\%$，多分布於深夜離峰），嚴格套用 $I_{i,\tau} > b_{i,s}$ 將使 \texttt{exposure\_rent\_min} 歸零，下游計數迴歸須與局部波谷理論配套設定常數正庫存之暴露保護規則，以避免低需求離峰時段遭系統性排除而引發向上選樣偏誤。
+        \end{enumerate}
     \end{enumerate}
 \end{enumerate}
+
+\begin{table}[htbp]
+\centering
+\caption{研究場域大型活動指標（$\text{Event}_s$）分級定義與 2024--2025 年收錄清冊彙整表}
+\label{tab:campus_event_definition}
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{@{} c >{\raggedright\arraybackslash}p{2.15cm} >{\raggedright\arraybackslash}p{4.9cm} >{\raggedright\arraybackslash}p{4.9cm} @{}}
+\toprule
+\textbf{分級} & \textbf{活動類別} & \textbf{2024 年收錄項目（$40$ 日）} & \textbf{2025 年收錄項目（$37$ 日）} \\
+\midrule
+\shortstack{\textbf{Tier 1（$37$ 日）}} & 全校傳統校務與典禮 & \textbf{8 日}：校園徵才博覽會（3/2）、杜鵑花節暨社博（3/9--10）、全校暨臺科大畢典（5/25）、新生書院核心日（8/29--30）、開學典禮暨宿舍搬入（9/1）、96 週年校慶（11/15） & \textbf{8 日}：校園徵才暨企排挑戰賽（3/8）、杜鵑花節暨社博（3/15--16）、全校暨臺科大畢典（5/24）、電機學群大畢典（6/8）、新生書院核心日（8/28）、開學典禮暨宿舍搬入（8/31）、97 週年校慶暨園遊會（11/15） \\
+\addlinespace[4pt]
+ & 體育館萬人展演與賽事特會 & \textbf{9 日}：CWT-66/67/68 同人展（2/24--25、8/10--11、12/14--15）、校園馬拉松暨企排 19 總冠軍賽（3/30--31）、黃仁勳 COMPUTEX 主題演講（6/2） & \textbf{12 日}：CWT-69 暨臺大碩考（2/8--9）、CWT-70/71 同人展（8/16--17、12/13--14）、企排 20 總冠軍賽（3/22--23）、校園馬拉松暨召會萬人青年大會 D1（3/29）、校慶運動會 D2 暨 LisAni! 動漫音祭（11/22--23）、拳願格鬥賽暨李俊昊見面會 D1（12/27） \\
+\midrule
+\shortstack{\textbf{Tier 2（$40$ 日）}} & 次核心校務與鄰校慶典 & \textbf{5 日}：新生書院 D1--D2（8/27--28）、上學期社團聯展（9/7）、校慶運動會（11/22--23，23 日疊加 BoA 演唱會） & \textbf{5 日}：國北教畢典暨臺大各院撥穗週末（6/7）、新生書院 D1/D3（8/27、8/29）、上學期社團聯展（9/6）、校慶運動會 D1（11/21） \\
+\addlinespace[4pt]
+ & 大型入學、語言與國家考試 & \textbf{9 日}：113 臺大碩士班筆試（2/3--4）、JLPT 日檢（7/7、12/1）、司法官律師二試（10/19--20）、地方特考（12/7--9） & \textbf{7 日}：學測 D1 暨幻藍小熊演唱會（1/18）、臺大轉學考暨親水節開幕（6/28）、JLPT 第一回（7/6）、司律二試 D1 暨 BTOB 延長賽（10/18）、國北教校慶暨地特與 JLPT 第二回（12/6--8） \\
+\addlinespace[4pt]
+ & 體育館大型商演與特會 & \textbf{9 日}：Jessica（4/21）、EMBA 畢典暨 KARA（6/22）、avantgardey 巡演（6/28--30，29 日疊加轉學考與親水節開幕）、EPIK HIGH（7/27）、南優鉉／李起光（10/5--6）、CRAVITY 暨公館聖誕季開幕（11/30） & \textbf{5 日}：李俊昊 FAN-CON（2/22--23）、召會萬人青年大會 D2（3/30）、BTOB FAN-CON（4/12）、Kep1er 演唱會（12/20） \\
+\midrule
+\multicolumn{2}{@{} l}{\textbf{合計（\texttt{event = 1}）}} & \multicolumn{2}{>{\raggedright\arraybackslash}p{10.02cm}@{}}{\textbf{$77$ 日}（2024 年 $40$ 日、2025 年 $37$ 日；含 Tier 1 共 $37$ 日、Tier 2 共 $40$ 日；依空間範疇分 \texttt{campus} $13$ 日、\texttt{venue} $35$ 日、\texttt{both} $29$ 日）} \\
+\bottomrule
+\end{tabular}
+%\par\vspace{3pt}
+%\parbox{\linewidth}{\raggedright\scriptsize\textcolor{black!70}{註：本表所有日期均由事前公開管道核對並以 \texttt{calendar\_add\_events.py} 寫入 \texttt{calendar\_2024.csv} 與 \texttt{calendar\_2025.csv}；同日多項活動重疊者僅於最高層級類別計次一次，無重複計算。非活動日於 \texttt{event}、\texttt{event\_tier}、\texttt{event\_scope} 與 \texttt{event\_name} 欄位統一編碼為 \texttt{0}。}}
+\end{table}
+\FloatBarrier
+
+\subsection{研究場域之空間格局、潮汐反轉與截斷風險特徵}\label{subsec:spatiotemporal_features}
+
+在完成上述跨源資料正規化後，以下基於 2024 至 2025 年完整兩年之 120 站實證資料與開放街圖（OpenStreetMap）路網向量底圖，從「靜態場域拓撲與流量規模」、「學期平日尖離峰淨流量潮汐」及「空滿站單邊截斷風險」三個層面剖析研究場域之時空結構特徵。
+
+\begin{figure}[htbp]
+\centering
+\definecolor{mapCampusFill}{HTML}{FBF1CF}
+\definecolor{mapCampusEdge}{HTML}{C8A028}
+\definecolor{mapOnCampus}{HTML}{1D6FD8}
+\definecolor{mapOnCampusEdge}{HTML}{0B4EA8}
+\definecolor{mapOffCampus}{HTML}{D95338}
+\definecolor{mapOffCampusEdge}{HTML}{B93218}
+\definecolor{mapOutside}{HTML}{6B7280}
+\setlength{\fboxsep}{0pt}%
+\setlength{\fboxrule}{0.5pt}%
+\fcolorbox{black!25}{white}{%
+  \includegraphics[width=\dimexpr0.92\linewidth-1pt\relax]{contents/figures/map/map_field_topology_capacity.pdf}%
+}\\[4pt]
+\begin{tikzpicture}
+  \node[
+    draw=black!20,
+    fill=black!2,
+    rounded corners=2pt,
+    text width=\dimexpr0.92\linewidth-14pt\relax,
+    inner xsep=6pt,
+    inner ysep=5pt,
+    align=center,
+    font=\footnotesize\linespread{1.25}\selectfont
+  ] {%
+    \mbox{\tikz[baseline=-0.5ex]{\filldraw[fill=mapCampusFill, draw=mapCampusEdge, line width=0.8pt] (0,0) rectangle (0.30,0.18);}~臺大校總區}\quad
+    \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapOnCampus!26, draw=mapOnCampusEdge, line width=0.7pt] (0,0) circle (0.10); \fill[mapOnCampus] (0,0) circle (0.042);}~校內站（$63$ 站）}\quad
+    \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapOffCampus!26, draw=mapOffCampusEdge, line width=0.7pt] (0,0) circle (0.10); \fill[mapOffCampus] (0,0) circle (0.042);}~校外站（$57$ 站）}\quad
+    \mbox{\tikz[baseline=-0.6ex]{\fill[mapOutside] (0,0) circle (0.06);}~範圍外站（$54$ 站）}\\[3pt]
+    \textcolor{black!70}{\scriptsize 圓圈面積 $\propto$ 2024--2025 累計借還量（全場域合計 $31{,}391{,}583$ 筆；運作車柱中位數合計 $3{,}714$ 柱）}%
+  };
+\end{tikzpicture}
+\caption{臺大研究場域 120 個 YouBike 2.0 站點空間拓撲與兩年累計借還流量分佈圖}
+\label{fig:field_topology_volume}
+\end{figure}
+
+圖~\ref{fig:field_topology_volume}~呈現研究場域之空間配置與兩年累計借還規模。為清晰辨識校園內部與外圍轉乘生活圈之結構分工，底圖沿新生南路三段、辛亥路二至三段、基隆路三至四段與羅斯福路四段之主要道路邊界標示出臺大校總區範圍（含銘傳國小與第二學生活動中心街廓）。在視窗涵蓋之全數 $174$ 個開放街圖公共自行車站點中，本研究納入之 $120$ 個站點可分為校總區內部及同側人行道之 $63$ 個校內站（藍色）與周邊生活圈之 $57$ 個校外站（橘紅色），其餘 $54$ 個未納入之周邊站點則以灰色標示作為空間參照。由圓圈面積所反映之兩年總借還量（合計 $31{,}391{,}583$ 筆）可見，高流量核心高度集中於三大類節點：其一為對外大眾運輸門戶（以捷運公館站 2 號出口兩年累計借出 $1{,}059{,}785$ 筆居全場域之冠，捷運公館站 3 號出口與捷運科技大樓站緊隨其後）；其二為鄰校與宿舍通勤軸帶（臺灣科技大學後門與側門分別位居全場域借出量第 5、6 名，水源舍區與長興街男宿群亦具龐大流量）；其三為校內主要教學與活動樞紐（女九舍、社科館、第一活動中心與椰林大道兩側教學館群）。
+
+\begin{figure}[htbp]
+\centering
+\definecolor{mapCampusFill}{HTML}{FBF1CF}
+\definecolor{mapCampusEdge}{HTML}{C8A028}
+\definecolor{mapGreen}{HTML}{129E4B}
+\definecolor{mapGreenEdge}{HTML}{0A6E31}
+\definecolor{mapRed}{HTML}{D93B3B}
+\definecolor{mapRedEdge}{HTML}{A61E1E}
+\setlength{\fboxsep}{0pt}%
+\setlength{\fboxrule}{0.45pt}%
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map5_netflow_09.pdf}}
+  \caption{早尖峰 09:00（校內淨流 $+341.4$ 輛/時）}
+  \label{fig:netflow_09}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map5_netflow_12.pdf}}
+  \caption{午間過渡 12:00（校內淨流 $-43.7$ 輛/時）}
+  \label{fig:netflow_12}
+\end{subfigure}
+
+\vspace{7pt}
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map5_netflow_17.pdf}}
+  \caption{晚尖峰 17:00（校內淨流 $-304.3$ 輛/時）}
+  \label{fig:netflow_17}
+\end{subfigure}\hfill
+\begin{minipage}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \begin{tikzpicture}
+    \node[
+      draw=black!22,
+      fill=black!2,
+      rounded corners=3pt,
+      text width=\dimexpr\linewidth-11pt\relax,
+      minimum height=4.92cm,
+      inner xsep=5pt,
+      inner ysep=5.5pt,
+      align=left,
+      font=\footnotesize\linespread{1.22}\selectfont
+    ] {%
+      \textbf{圖例與時段淨流量摘要}\\[4pt]
+      \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapGreen!28, draw=mapGreenEdge, line width=0.7pt] (0,0) circle (0.10);}~淨流入（還 $>$ 借）}\enspace
+      \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapRed!28, draw=mapRedEdge, line width=0.7pt] (0,0) circle (0.10);}~淨流出（借 $>$ 還）}\\[3pt]
+      \mbox{\tikz[baseline=-0.5ex]{\filldraw[fill=mapCampusFill, draw=mapCampusEdge, line width=0.7pt] (0,0) rectangle (0.28,0.17);}~臺大校總區}\enspace
+      {\scriptsize 三圖共用比例（上限 $127.8$ 輛/時）}\\[6pt]
+      \renewcommand{\arraystretch}{1.22}%
+      \setlength{\tabcolsep}{2.2pt}%
+      \scriptsize
+      \begin{tabular}{@{} l r r l @{}}
+      \toprule
+      \textbf{時段} & \textbf{校內} & \textbf{校外} & \textbf{極值站（輛/時）} \\
+      \midrule
+      09:00 & $+341.4$ & $-108.0$ & 女九 $+78.3$/長興 $-17.5$ \\
+      12:00 & $-43.7$ & $-9.6$ & 農陳 $+8.9$/女九 $-16.9$ \\
+      17:00 & $-304.3$ & $-65.0$ & 公館3 $+127.8$/女九 $-62.7$ \\
+      \bottomrule
+      \end{tabular}\\[6pt]
+      {\scriptsize\textcolor{black!70}{註：樣本為 2024--2025 學期中實質工作日（$N = 321$ 日），僅顯示 120 個研究站點；淨流量定義為還入減借出。}}%
+    };
+  \end{tikzpicture}
+\end{minipage}
+\caption{學期中平日三代表時段（09:00、12:00、17:00）站點小時淨流量空間潮汐反轉圖}
+\label{fig:netflow_tidal_reversal}
+\end{figure}
+
+為檢驗單車網絡之動態不平衡特徵，圖~\ref{fig:netflow_tidal_reversal}~繪製兩年間全數 $321$ 個學期中實質工作日在早尖峰（09:00）、午間（12:00）與晚尖峰（17:00）三個關鍵整點小時之站點平均淨流量（還入減借出），三張子圖採用一致之面積上限（$127.8$ 輛/時）以利跨時段直接比較：
+
+\begin{enumerate}[label = \textbullet]
+    \item \textbf{早尖峰強單向湧入校園（09:00）}：上午 9 時至 10 時為學生通勤入校與上午課堂啟動高峰，校內 63 站合計呈現 $+341.4$ 輛/時之巨額淨流入（37 站淨流入、26 站淨流出），車輛迅速沉積於臺大女九舍西南側（$+78.3$ 輛/時）、臺大社會系館南側（$+55.7$ 輛/時）及臺大第一活動中心西南側（$+36.8$ 輛/時）等校內核心站；相對地，校外 57 站合計呈現 $-108.0$ 輛/時淨流出，尤以基隆長興路口（$-17.5$ 輛/時）、臺大男六舍前（$-12.9$ 輛/時）與臺大男一舍前（$-12.8$ 輛/時）等宿舍出發點之車輛消耗最劇。
+    \item \textbf{午間短暫動態均衡（12:00）}：中午 12 時至 13 時因校內外用餐與換堂雙向交錯，潮汐強度明顯趨緩，校內合計僅微幅淨流出 $-43.7$ 輛/時（30 站淨流入、33 站淨流出），校外合計 $-9.6$ 輛/時，單站淨流幅多收斂於 $\pm 17$ 輛/時以內（如女九舍 $-16.9$ 輛/時、農陳館 $+8.9$ 輛/時）。
+    \item \textbf{晚尖峰全面潮汐反轉（17:00）}：傍晚 17 時至 18 時下課離校人潮引發徹底之空間反轉，校內 63 站中有 54 站轉為淨流出，校內合計驟降至 $-304.3$ 輛/時（女九舍 $-62.7$、社科館 $-51.4$、第一活動中心 $-42.8$ 輛/時）；巨量車流全數回湧至捷運轉乘門戶，使捷運公館站 3 號與 2 號出口分別暴增至 $+127.8$ 與 $+125.0$ 輛/時之極端淨流入。
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\definecolor{mapCampusFill}{HTML}{FBF1CF}
+\definecolor{mapCampusEdge}{HTML}{C8A028}
+\definecolor{mapGreen}{HTML}{129E4B}
+\definecolor{mapGreenEdge}{HTML}{0A6E31}
+\definecolor{mapRed}{HTML}{D93B3B}
+\definecolor{mapRedEdge}{HTML}{A61E1E}
+\setlength{\fboxsep}{0pt}%
+\setlength{\fboxrule}{0.45pt}%
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map7_truncation_09.pdf}}
+  \caption{早尖峰 09:00（外空 $28.3\%$、內滿 $12.8\%$）}
+  \label{fig:truncation_09}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map7_truncation_12.pdf}}
+  \caption{午間 12:00（外空 $13.3\%$、內空 $7.5\%$）}
+  \label{fig:truncation_12}
+\end{subfigure}
+
+\vspace{7pt}
+\begin{subfigure}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \fcolorbox{black!25}{white}{\includegraphics[width=\dimexpr\linewidth-0.9pt\relax]{contents/figures/map/map7_truncation_17.pdf}}
+  \caption{晚尖峰 17:00（內空 $18.7\%$、外滿 $8.6\%$）}
+  \label{fig:truncation_17}
+\end{subfigure}\hfill
+\begin{minipage}[t]{0.485\linewidth}
+  \vspace{0pt}%
+  \centering
+  \begin{tikzpicture}
+    \node[
+      draw=black!22,
+      fill=black!2,
+      rounded corners=3pt,
+      text width=\dimexpr\linewidth-11pt\relax,
+      minimum height=4.92cm,
+      inner xsep=5pt,
+      inner ysep=5.5pt,
+      align=left,
+      font=\footnotesize\linespread{1.22}\selectfont
+    ] {%
+      \textbf{圖例與單邊截斷風險摘要}\\[4pt]
+      \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapRed!28, draw=mapRedEdge, line width=0.7pt] (0,0) circle (0.10);}~空站主導（無車）}\enspace
+      \mbox{\tikz[baseline=-0.6ex]{\filldraw[fill=mapGreen!28, draw=mapGreenEdge, line width=0.7pt] (0,0) circle (0.10);}~滿站主導（無柱）}\\[3pt]
+      \mbox{\tikz[baseline=-0.5ex]{\filldraw[fill=mapCampusFill, draw=mapCampusEdge, line width=0.7pt] (0,0) rectangle (0.28,0.17);}~臺大校總區}\enspace
+      {\scriptsize 三圖共用比例（上限 $76.4\%$）}\\[6pt]
+      \renewcommand{\arraystretch}{1.22}%
+      \setlength{\tabcolsep}{2.0pt}%
+      \scriptsize
+      \begin{tabular}{@{} l c c l @{}}
+      \toprule
+      \textbf{時段} & \textbf{校內空/滿} & \textbf{校外空/滿} & \textbf{最高風險站（$\%$）} \\
+      \midrule
+      09:00 & $14.9/12.8$ & $28.3/2.5$ & 大一女空 $76$/電二滿 $65$ \\
+      12:00 & $7.5/4.9$ & $13.3/3.6$ & 長興空 $35$/溫州滿 $30$ \\
+      17:00 & $18.7/2.7$ & $10.7/8.6$ & 溫州滿 $50$/電二空 $49$ \\
+      \bottomrule
+      \end{tabular}\\[6pt]
+      {\scriptsize\textcolor{black!70}{註：單位皆為 $\%$；樣本為學期平日（$N = 321$ 日）。空站採 $b_{i,s}=0$ 停留佔比，滿站採 $O_{i,\tau}=0$ 分鐘佔比，圓面積對應合計不可用佔比。}}%
+    };
+  \end{tikzpicture}
+\end{minipage}
+\caption{學期中平日三代表時段（09:00、12:00、17:00）站點空滿站單邊截斷風險空間分佈圖}
+\label{fig:truncation_risk_spatial}
+\end{figure}
+
+上述劇烈之單向潮汐流動在有限車柱容量下，隨即轉化為嚴重的站點「無車可借（空站）」與「無位可還（滿站）」服務截斷。圖~\ref{fig:truncation_risk_spatial}~直接以連續時間波谷暴露表計算 321 個學期平日於同時段之站點不可用時間佔比（空站比例與滿站比例之和，共用上限 $76.4\%$），並以紅色標示空站主導、綠色標示滿站主導站點：
+
+\begin{enumerate}[label = \textbullet]
+    \item \textbf{早尖峰「外空內滿」雙重截斷（09:00）}：校外 57 站平均有 $28.3\%$ 的時間處於完全空站狀態（校內空站 $14.9\%$、滿站 $12.8\%$），臺大大一女舍北側與銘傳國小側門之空站佔比更高達 $76\%$ 與 $74\%$；與此同時，校內教學核心則因大量還入而飽和，臺大電機二館東南側在該小時有高達 $65\%$ 之時間處於無空柱可還之滿站截斷。
+    \item \textbf{午間風險局部緩和（12:00）}：午間全區平均空滿站比例回落（校內空 $7.5\%$、滿 $4.9\%$；校外空 $13.3\%$、滿 $3.6\%$），惟基隆長興路口（空 $35\%$）與溫州公園（滿 $30\%$）等局部瓶頸站點仍存在三成以上之單邊截斷。
+    \item \textbf{晚尖峰「內空外滿」空間對調（17:00）}：傍晚下課潮使風險版圖完全翻轉，校內平均空站佔比攀升至 $18.7\%$（滿站降至 $2.7\%$），臺大電機二館東南側由早尖峰之 $65\%$ 滿站劇烈翻轉為 $49\%$ 空站，臺大動物醫院前亦達 $43\%$ 空站；反之，外圍轉乘與生活圈站點承受強烈還車壓力（校外滿站升至 $8.6\%$），溫州公園與捷運公館站 4 號出口之滿站佔比分別高達 $50\%$ 與 $43\%$。
+\end{enumerate}
+
+綜合上述實證診斷可見，臺大 YouBike 系統同時面臨兩項使傳統資料分析失效之結構挑戰：一方面，熱點站點在尖峰時段有高達五成至七成以上的時間處於空站或滿站之單邊截斷狀態，直接拿票證刷卡成交數作為需求將嚴重低估真實借還潛力；另一方面，TDX 快照在 2025 年後採樣密度轉稀且混雜人為調度與故障車沉澱，使依賴單步庫存差分門檻之拆解方法產生劇烈失真。此二實證特徵正構成下一節提出「局部庫存波谷遮罩與雙通道解耦識別策略」之核心出發點。
 
 \section{無效庫存與調度事件識別}\label{sec:latent_demand_identification}
 
@@ -126,9 +379,12 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
 
 \begin{enumerate}
     \item \textbf{狀況一：維運移出與自然還車交錯（$R^{\text{out}}_{i,\tau} = 1, \, Y^-_{i,\tau} = 1$）}
-    \begin{align}
-    \Delta I_{i,\tau} &= \left(Y^-_{i,\tau} - Y^+_{i,\tau}\right) + \left(R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}\right) = (1 - 0) + (0 - 1) = 0, \qquad Y^+_{i,\tau} = 0
-    \end{align}
+    \begin{equation}
+    \begin{aligned}
+    \Delta I_{i,\tau} &= \left(Y^-_{i,\tau} - Y^+_{i,\tau}\right) + \left(R^{\text{in}}_{i,\tau} - R^{\text{out}}_{i,\tau}\right) \\
+    &= (1 - 0) + (0 - 1) = 0, \qquad Y^+_{i,\tau} = 0
+    \end{aligned}
+    \end{equation}
     維運拉車（$-1$）與民眾還車（$+1$）一加一減相互抵銷，帳面車數不變（$I_{i,\tau} = I_{i,\tau-1}$）。還車僅計入 $Y^-_{i,s}$ 而不觸動借車分子 $Y^+_{i,s}$，分母暴露狀態亦維持原狀，故不影響 $\hat{\lambda}_{i,s}$。
 
     \item \textbf{狀況二：維運補入與自然借車交錯（$R^{\text{in}}_{i,\tau} = 1, \, Y^+_{i,\tau} = 1$）}
@@ -185,6 +441,8 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
 
 \begin{figure}[!t]
 \centering
+{
+\tikzexternalenable
 \begin{tikzpicture}[
     xscale=0.188,
     yscale=0.39,
@@ -297,6 +555,7 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
         \node[font=\scriptsize, anchor=north] at (\x, -5.55) {$\x$};
     }
 \end{tikzpicture}
+}
 \caption{單一小時時段內五大現場營運狀況與有效借車暴露時間識別範例}
 \label{fig:trough_exposure_example}
 \end{figure}
@@ -316,9 +575,9 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
 除上述五種常態營運狀況外，針對實務現場極少數可能發生之特殊邊界交互，本識別架構之處置機制與大樣本性質說明如下：
 
 \begin{enumerate}
-    \item \textbf{\textcolor{red}{同站異常試借之秒借秒還}}：若少數異常車尚未被鎖定，民眾刷出後始察覺車況不佳並立即推回同站歸還，帳面上將成對產生一筆借車（$Y^+ + 1$）與一筆還車（$Y^- + 1$）。本研究於資料前處理可直接過濾同站極短時試借紀錄；即便部分留存，成對發生之同站借還在站點淨流量（$\lambda_{i,s} - \mu_{i,s}$）中一加一減自然抵銷，於跨站轉移矩陣中亦僅為原地自迴圈（$i \to i$），完全維持系統流量守恆，且車柱具備短時歸還異常鎖定機制，於大樣本匯總下不影響估計結果。
+    \item \textbf{同站異常試借之秒借秒還}：若少數異常車尚未被鎖定，民眾刷出後始察覺車況不佳並立即推回同站歸還，帳面上將成對產生一筆借車（$Y^+ + 1$）與一筆還車（$Y^- + 1$）。本研究於資料前處理可直接過濾同站極短時試借紀錄；即便部分留存，成對發生之同站借還在站點淨流量（$\lambda_{i,s} - \mu_{i,s}$）中一加一減自然抵銷，於跨站轉移矩陣中亦僅為原地自迴圈（$i \to i$），完全維持系統流量守恆，且車柱具備短時歸還異常鎖定機制，於大樣本匯總下不影響估計結果。
 
-    \item \textbf{單一時段內截斷底線之階梯跳變}：波谷遮罩係假設單邊截斷底線 $D_{i,s}$ 於單一決策時段 $s$（15 或 60 分鐘）內維持局部平穩；若同一時段內先於低水位觸底，中途因壞車還入（或維運清運壞車）使截斷底線墊高（或降低）並再次觸底，單一水平波谷 $b_{i,s}$ 僅能捕捉較低之截斷水位。然而，車輛損壞與維修清運本身皆屬低頻率事件，在單一短時段內同時發生「先觸底、中途底線跳變、再二次觸底」之複合機率極低，於跨期大樣本匯總下屬可忽略之微小擾動。
+    \item \textbf{單一時段內截斷底線之階梯跳變}：波谷遮罩係假設單邊截斷底線 $D_{i,s}$ 於單一決策時段 $s$（60 分鐘）內維持局部平穩；若同一時段內先於低水位觸底，中途因壞車還入（或維運清運壞車）使截斷底線墊高（或降低）並再次觸底，單一水平波谷 $b_{i,s}$ 僅能捕捉較低之截斷水位。然而，車輛損壞與維修清運本身皆屬低頻率事件，在單一短時段內同時發生「先觸底、中途底線跳變、再二次觸底」之複合機率極低，於跨期大樣本匯總下屬可忽略之微小擾動。
 
     \item \textbf{還車端車柱鎖定與分鐘網格之微觀時間差}：在還車端，理論上雖可定義對稱之局部空柱波谷 $o_{i,s} \equiv \min_{\tau \in \mathcal{T}_s} O_{i,\tau}$，惟實務上車柱斷電或硬體鎖定時，TDX 回傳之可還空柱數 $O_{i,\tau}$ 已由系統自動即時扣減（反映於第~\ref{subsec:data_preprocessing_pipeline}~節之 $I_{i,\tau} + O_{i,\tau} < C_i$，與故障車仍停於柱上計入 $I_{i,\tau}$ 之機制不同），且多數未滿站時段之 $o_{i,s} > 0$ 係源於充裕空柱而非故障卡死；故直接以 $O_{i,\tau} = 0$ 即可避免過度遮蔽充裕空柱時段並捕捉實質滿站截斷。至於極少數發生於波谷（$I_{i,\tau} = b_{i,s}$）或滿站（$O_{i,\tau} = 0$）交界分鐘內之「一進一出抵銷」，雖因票證資料僅記錄小時總量而無從逐分識別，惟此類交界瞬間於單小時內至多發生 1～2 次，於全年大樣本網格匯總下皆自然平滑抵銷。
 \end{enumerate}
@@ -331,7 +590,7 @@ B^{\text{eff}}_{i,\tau} &= I_{i,\tau} - D_{i,s} \ge \left(b_{i,s} + 1\right) - b
 
 \begin{enumerate}
     \item \textbf{次時段時變強度之不可辨識性與最大熵基準}：
-    微觀交通流之抵達強度雖隨時間波動（非齊次強度 $\lambda_i(t)$），惟配適連續時變函數 $\lambda_i(t)$ 必須具備分秒級之微觀交易時間戳記。受限於官方票證資料將時間戳記截斷至整點（\texttt{:00:00}），且 TDX 快照差分 $\Delta I_{i,\tau}$ 混雜未記載之卡車調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 與截斷底線 $D_{i,s}$，實證上在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 內僅能觀測到時段交易總量 $Y^+_{i,s}$，無法取得次時段內之微觀事件序列。在「僅具區間總量與暴露時長」之資訊集約束下，小時內之連續波形 $\lambda_i(t)$ 在統計上屬不可辨識（unidentifiable）。依據最大熵原理，在已知區間總期望值而無次時段微觀先驗資訊下，將單一決策時段 $s$ 內之潛在抵達強度設為局部平穩常數 $\lambda_{i,s}$（分段常數齊次 Poisson 過程），是不引入武斷函數形式假設之唯一無偏基準。
+    微觀交通流之抵達強度雖隨時間波動（非齊次強度 $\lambda_i(t)$），惟配適連續時變函數 $\lambda_i(t)$ 必須具備分秒級之微觀交易時間戳記。受限於官方票證資料將時間戳記截斷至整點（\texttt{:00:00}），且 TDX 快照差分 $\Delta I_{i,\tau}$ 混雜未記載之卡車調度 $(R^{\text{in}}_{i,\tau}, R^{\text{out}}_{i,\tau})$ 與截斷底線 $D_{i,s}$，實證上在有效暴露時間集合 $\mathcal{T}^+_{i,s}$ 內僅能觀測到時段交易總量 $Y^+_{i,s}$，無法取得次時段內之微觀事件序列。在「僅具區間總量與暴露時長」之資訊集約束下，小時內之連續波形 $\lambda_i(t)$ 在統計上屬不可辨識。依據最大熵原理，在已知區間總期望值而無次時段微觀先驗資訊下，將單一決策時段 $s$ 內之潛在抵達強度設為局部平穩常數 $\lambda_{i,s}$（分段常數齊次 Poisson 過程），是不引入武斷函數形式假設之唯一無偏基準。
 
     \item \textbf{車隊調度週期與下游佇列模型之尺度契合}：
     實務上，營運商調度貨車於城市路網巡迴補車，受限於道路行車與裝卸作業歷時，其資源再平衡決策本質上即以小時（或課堂節次區段）為作業週期。在分秒尺度上強行配適高階參數化波形，對宏觀車隊調度並無實質增益；反之，以時段 $s$ 為單位還原之局部平穩需求率 $\left(\hat{\lambda}_{i,s}, \hat{\mu}_{i,s}\right)$，恰能直接作為第~\ref{chap:Dynamic Rebalancing Models & Algorithms}~章分時段非齊次生滅佇列（$M_t/M_t/1/C_i$）與混合整數規劃之精確參數輸入。
@@ -431,7 +690,12 @@ E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}
     由式~\eqref{eq:censored_poisson_increment}~之結構關係 $dY^+_{i,s}(t) = \mathbb{I}(I_{i,t^-} - D_{i,s} \ge 1) \cdot dN_{i,s}(t)$ 可知，當站點因無車可借觸及單邊截斷底線（$I_{i,t^-} \le D_{i,s}$）時，指示函數恆為零，觀測交易增量 $dY^+_{i,s}(t) \equiv 0$。自資訊理論觀點視之，在斷貨子區間 $\mathcal{T}_s \setminus \mathcal{T}^+_{i,s}$ 內，觀測刷卡紀錄與真實潛在抵達間之條件互資訊恆等於零（$I(dN_{i,s}; dY^+_{i,s} \mid I_{i,t^-} \le D_{i,s}) = 0$）。實證檢核臺大場域資料顯示，平日晚間 21～22 時高達 $32\%$ 之站點發生空站斷貨（日間 09～10 時與 13～14 時教學區亦有 $10\%\text{--}12\%$ 之站點發生滿站無柱截斷）；在斷貨時段內，純機器學習僅能觀測到帳面成交量驟降，無法區辨「真實無借車需求」與「硬體缺車導致需求被截斷」。
 
     \item \textbf{以 TDX 庫存快照差分（$\Delta I_{i,\tau}$）作為監督標籤之三種結構性污染}：
-    若試圖繞過票證整點截斷、改以 TDX 變動觸發快照之相鄰庫存差分 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$ 訓練機器學習模型，實證管線檢核證實其標籤將同時遭受三類非自然流量干擾：（1）\textbf{慢速人工補車混淆}——例如捷運公館站於凌晨 03:00～05:00（捷運停駛且無通勤人潮）仍呈現每小時 $5\text{--}12$ 輛之淨流入，經查係維運人員以每次 $1\text{--}3$ 輛之微幅步長陸續推進車柱，完全逃逸傳統 $|\Delta I_{i,\tau}| \ge 10$ 之調度過濾門檻；（2）\textbf{車柱感測器 $\pm 1$ 跳動雜訊}——部分站點於離峰時段出現硬體感測器反覆 $\pm 1$ 振盪，直接累加負差分將嚴重虛增借車量；（3）\textbf{微觀步長內借還相消}——在相鄰快照中位數 $1.9$ 分鐘之採樣區間內，同時發生之自然借車與還車在淨差分 $\Delta I_{i,\tau}$ 中相互抵銷，導致高周轉時段之總需求被系統性低估。
+    若試圖繞過票證整點截斷、改以 TDX 變動觸發快照之相鄰庫存差分 $\Delta I_{i,\tau} = I_{i,\tau} - I_{i,\tau-1}$ 訓練機器學習模型，實證管線檢核證實其標籤將同時遭受三類非自然流量干擾：
+    \begin{enumerate}
+      \item \textbf{慢速人工補車混淆}——例如捷運公館站於凌晨 03:00～05:00（捷運停駛且無通勤人潮）仍呈現每小時 $5\text{--}12$ 輛之淨流入，經查係維運人員以每次 $1\text{--}3$ 輛之微幅步長陸續推進車柱，完全逃逸傳統 $|\Delta I_{i,\tau}| \ge 10$ 之調度過濾門檻；
+      \item \textbf{車柱感測器 $\pm 1$ 跳動雜訊}——部分站點於離峰時段出現硬體感測器反覆 $\pm 1$ 振盪，直接累加負差分將嚴重虛增借車量；
+      \item \textbf{微觀步長內借還相消}——在相鄰快照中位數 $1.9$ 分鐘之採樣區間內，同時發生之自然借車與還車在淨差分 $\Delta I_{i,\tau}$ 中相互抵銷，導致高周轉時段之總需求被系統性低估。
+    \end{enumerate}
 \end{enumerate}
 
 為在數理上精確量化上述截斷偏誤，現放寬時段內之齊次性假設，設站點 $i$ 於決策時段 $s$（總時長 $\Delta t_s$）內之潛在無約束借車抵達服從一般非齊次時變強度 $\lambda_{i,s}(t)$。定義時段 $s$ 內未受硬體截斷之「真實平均需求率」為：
@@ -439,15 +703,21 @@ E\left[\hat{\lambda}_{i,s}\right] = \lambda_{i,s}, \qquad E\left[\hat{\mu}_{i,s}
 \lambda^*_{i,s} &\equiv \frac{1}{\Delta t_s} \int_0^{\Delta t_s} \lambda_{i,s}(t) \, dt
 \end{align}
 並記給定外生特徵 $X_{i,s}$ 下之真實條件期望需求率為 $g^*(X_{i,s}) \equiv E\left[\lambda^*_{i,s} \;\middle|\; X_{i,s}\right]$。對於任意需求率預測函數 $f(X_{i,s})$，定義其衡量真實潛在需求之均方誤差風險為：
-\begin{align}
-R_{\text{true}}(f) &\equiv E\left[ \left( f(X_{i,s}) - \lambda^*_{i,s} \right)^2 \right] = E\left[ \left( f(X_{i,s}) - g^*(X_{i,s}) \right)^2 \right] + E\left[ \text{Var}\left( \lambda^*_{i,s} \;\middle|\; X_{i,s} \right) \right]
-\end{align}
+\begin{equation}
+\begin{aligned}
+R_{\text{true}}(f) &\equiv E\left[ \left( f(X_{i,s}) - \lambda^*_{i,s} \right)^2 \right] \\
+&= E\left[ \left( f(X_{i,s}) - g^*(X_{i,s}) \right)^2 \right] + E\left[ \text{Var}\left( \lambda^*_{i,s} \;\middle|\; X_{i,s} \right) \right]
+\end{aligned}
+\end{equation}
 其中第二項 $E\left[\text{Var}(\lambda^*_{i,s} \mid X_{i,s})\right]$ 為潛在抵達過程固有之不可約隨機變異，與模型選擇無關；故比較不同方法之真實需求均方風險，完全等價於比較其對真實條件期望需求率 $g^*(X_{i,s})$ 之偏誤平方。
 
 依第~\ref{subsec:trough_envelope}~節之有效暴露時間集合 $\mathcal{T}^+_{i,s}$，定義時段 $s$ 之單邊截斷時間比例為 $\pi_{i,s} \equiv \text{EmptyMin}_{i,s} / \Delta t_s \in [0, 1)$，則有效暴露時長滿足 $\text{Exposure}^+_{i,s} = (1 - \pi_{i,s})\Delta t_s$。將時段 $[0, \Delta t_s]$ 嚴格分割為有效暴露子集 $\mathcal{T}^+_{i,s}$ 與觸底截斷子集 $\mathcal{T}_s \setminus \mathcal{T}^+_{i,s}$，分別定義站點在有車暴露期間與斷貨截斷期間之真實子區間平均需求強度：
-\begin{align}
-\bar{\lambda}^+_{i,s} &\equiv \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt, \qquad \bar{\lambda}^{\text{empty}}_{i,s} \equiv \frac{1}{\text{EmptyMin}_{i,s}} \int_{t \in \mathcal{T}_s \setminus \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt
-\end{align}
+\begin{equation}
+\begin{aligned}
+\bar{\lambda}^+_{i,s} &\equiv \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt, \\
+\bar{\lambda}^{\text{empty}}_{i,s} &\equiv \frac{1}{\text{EmptyMin}_{i,s}} \int_{t \in \mathcal{T}_s \setminus \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt
+\end{aligned}
+\end{equation}
 由此，未受截斷之真實平均需求率 $\lambda^*_{i,s}$ 可精確分解為兩子區間強度之加權組合：
 \begin{align}
 \lambda^*_{i,s} &= (1 - \pi_{i,s}) \bar{\lambda}^+_{i,s} + \pi_{i,s} \bar{\lambda}^{\text{empty}}_{i,s}
@@ -456,7 +726,8 @@ R_{\text{true}}(f) &\equiv E\left[ \left( f(X_{i,s}) - \lambda^*_{i,s} \right)^2
 現考慮直接以原始觀測交易率 $Y^{\text{raw}}_{i,s} = Y^+_{i,s} / \Delta t_s$ 進行監督式學習之通用機器學習模型族 $\mathcal{H}$。在無窮大樣本極限（$n \to \infty$）且假說空間具備完美逼近能力之最有利條件下，藉由最小化經驗平方損失 $\frac{1}{n}\sum (Y^{\text{raw}}_{i,s} - f(X_{i,s}))^2$ 所收斂之理論極限預測函數 $f^*_{\text{ML}}(X_{i,s})$，在數學上嚴格等於觀測交易率之條件期望值：
 \begin{equation}
 \begin{aligned}
-f^*_{\text{ML}}(X_{i,s}) &= E\left[ \frac{Y^+_{i,s}}{\Delta t_s} \;\middle|\; X_{i,s} \right] = E\left[ \frac{\text{Exposure}^+_{i,s}}{\Delta t_s} \cdot \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt \;\middle|\; X_{i,s} \right] \\
+f^*_{\text{ML}}(X_{i,s}) &= E\left[ \frac{Y^+_{i,s}}{\Delta t_s} \;\middle|\; X_{i,s} \right] \\
+&= E\left[ \frac{\text{Exposure}^+_{i,s}}{\Delta t_s} \cdot \frac{1}{\text{Exposure}^+_{i,s}} \int_{t \in \mathcal{T}^+_{i,s}} \lambda_{i,s}(t) \, dt \;\middle|\; X_{i,s} \right] \\
 &= E\left[ (1 - \pi_{i,s}) \bar{\lambda}^+_{i,s} \;\middle|\; X_{i,s} \right]
 \end{aligned}
 \end{equation}
