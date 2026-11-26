@@ -1,0 +1,257 @@
+{
+  "created_at": "2026-11-26",
+  "author": "柯典辰 (B13303082)",
+  "exposure_granularity": "integer_minute_floor_seconds_strict_positive",
+  "temperature_spec": "linear_Temp_only_K76",
+  "input_sha256": {
+    "stations": "fbf0c1797ddbbe59de4852b077ce79dc8243ccc59f08caf4cff0ddfa5eba1ce4",
+    "flow_hourly": "f2e21013892c58b9b5f93e347b4defb37999608ff45022003a0426840092dd23",
+    "rental_2024": "5c91e9b439f421bc41d7c247508bc9bdd01f7bac4e11e8887243cb6053d8b3b5",
+    "rental_2025": "d059c1457763ff8af3a327f52ddcc37262df2aa6370d1db6f7550b812b612a2e",
+    "trough_2024": "30e2e4381422c0b38062474c6037263c390b0b2c5ec763133ecafc81cea11760",
+    "trough_2025": "1532b91fc70e08dc3aa54248435a7b7dc0d3cf955743308fb8558a8225a15ffc",
+    "weather": "c8e7fe27119fc322aa134f6f58d7ece5db7597209dcc622531316c0d83362b2a",
+    "cal_2024": "0a803eeac7a1fea84c06eda5e7ed6f4fb2f086d0ae494a7af583c44be91544be",
+    "cal_2025": "9dfb926aa48aeb770e7029b236221f78136885b793037a0e815f4ae2689f2686"
+  },
+  "academic_calendar_ranges": {
+    "opening_weeks_mon_fri": [
+      [
+        "2024-02-19",
+        "2024-02-23"
+      ],
+      [
+        "2024-09-02",
+        "2024-09-06"
+      ],
+      [
+        "2025-02-17",
+        "2025-02-21"
+      ],
+      [
+        "2025-09-01",
+        "2025-09-05"
+      ]
+    ],
+    "exam_weeks_mon_fri": [
+      [
+        "2024-04-08",
+        "2024-04-12"
+      ],
+      [
+        "2024-06-03",
+        "2024-06-07"
+      ],
+      [
+        "2024-10-21",
+        "2024-10-25"
+      ],
+      [
+        "2024-12-16",
+        "2024-12-20"
+      ],
+      [
+        "2025-04-07",
+        "2025-04-11"
+      ],
+      [
+        "2025-06-02",
+        "2025-06-06"
+      ],
+      [
+        "2025-10-20",
+        "2025-10-24"
+      ],
+      [
+        "2025-12-15",
+        "2025-12-19"
+      ]
+    ]
+  },
+  "q1_2025_global_scale_factors": {
+    "rent_nb2_fe": 1.358525,
+    "rent_baseline": 1.134306,
+    "return_nb2_fe": 1.384247,
+    "return_baseline": 1.105132
+  },
+  "models": {
+    "rent_train_2024": {
+      "model": "rent_train_2024",
+      "include_temp_sq": false,
+      "N_total_valid": 753991,
+      "N_est": 753963,
+      "N_zero_fe_rows": 28,
+      "G_fe_estimated": 5655,
+      "G_fe_zero_separated": 7,
+      "K_regressors": 76,
+      "outcome_mean_count": 8.598566507905561,
+      "outcome_mean_rate_per_min": 0.20112968685957022,
+      "alpha": 0.18282881704702603,
+      "theta_nb": 5.469597277669781,
+      "loglik_nb2": -1864995.9195128279,
+      "loglik_poisson": -2131440.1117159883,
+      "lr_overdispersion": 532888.3844063208,
+      "aic_nb2": 3741455.8390256558,
+      "n_clusters_station": 118,
+      "n_clusters_date": 354,
+      "elapsed_sec": 6.01
+    },
+    "return_train_2024": {
+      "model": "return_train_2024",
+      "include_temp_sq": false,
+      "N_total_valid": 912531,
+      "N_est": 911042,
+      "N_zero_fe_rows": 1489,
+      "G_fe_estimated": 5651,
+      "G_fe_zero_separated": 13,
+      "K_regressors": 76,
+      "outcome_mean_count": 6.929943954285313,
+      "outcome_mean_rate_per_min": 0.13336534403064518,
+      "alpha": 0.2260185224524998,
+      "theta_nb": 4.424416145849997,
+      "loglik_nb2": -1937561.762150592,
+      "loglik_poisson": -2245309.521471726,
+      "lr_overdispersion": 615495.5186422677,
+      "aic_nb2": 3886579.524301184,
+      "n_clusters_station": 118,
+      "n_clusters_date": 354,
+      "elapsed_sec": 6.62
+    },
+    "rent_train_2024_with_tempsq": {
+      "model": "rent_train_2024_with_tempsq",
+      "include_temp_sq": true,
+      "N_total_valid": 753991,
+      "N_est": 753963,
+      "N_zero_fe_rows": 28,
+      "G_fe_estimated": 5655,
+      "G_fe_zero_separated": 7,
+      "K_regressors": 77,
+      "outcome_mean_count": 8.598566507905561,
+      "outcome_mean_rate_per_min": 0.20112968685957022,
+      "alpha": 0.18266783967706537,
+      "theta_nb": 5.474417400281729,
+      "loglik_nb2": -1864738.8356952304,
+      "loglik_poisson": NaN,
+      "lr_overdispersion": NaN,
+      "aic_nb2": 3740943.671390461,
+      "n_clusters_station": 118,
+      "n_clusters_date": 354,
+      "elapsed_sec": 6.43
+    },
+    "return_train_2024_with_tempsq": {
+      "model": "return_train_2024_with_tempsq",
+      "include_temp_sq": true,
+      "N_total_valid": 912531,
+      "N_est": 911042,
+      "N_zero_fe_rows": 1489,
+      "G_fe_estimated": 5651,
+      "G_fe_zero_separated": 13,
+      "K_regressors": 77,
+      "outcome_mean_count": 6.929943954285313,
+      "outcome_mean_rate_per_min": 0.13336534403064518,
+      "alpha": 0.225913799587717,
+      "theta_nb": 4.4264670941968,
+      "loglik_nb2": -1937233.6103896757,
+      "loglik_poisson": NaN,
+      "lr_overdispersion": NaN,
+      "aic_nb2": 3885925.2207793514,
+      "n_clusters_station": 118,
+      "n_clusters_date": 354,
+      "elapsed_sec": 7.66
+    },
+    "rent_train_2024_with_cpi": {
+      "model": "rent_train_2024_with_cpi",
+      "include_temp_sq": false,
+      "N_total_valid": 873470,
+      "N_est": 873326,
+      "N_zero_fe_rows": 144,
+      "G_fe_estimated": 5655,
+      "G_fe_zero_separated": 9,
+      "K_regressors": 76,
+      "outcome_mean_count": 7.430102848191855,
+      "outcome_mean_rate_per_min": 0.1737526331446701,
+      "alpha": 0.20673337887495435,
+      "theta_nb": 4.8371482410920414,
+      "loglik_nb2": -1966277.290800523,
+      "loglik_poisson": NaN,
+      "lr_overdispersion": NaN,
+      "aic_nb2": 3944018.581601046,
+      "n_clusters_station": 118,
+      "n_clusters_date": 354,
+      "elapsed_sec": 7.12
+    },
+    "rent_full_2024_2025": {
+      "model": "rent_full_2024_2025",
+      "include_temp_sq": false,
+      "N_total_valid": 1504901,
+      "N_est": 1504901,
+      "N_zero_fe_rows": 0,
+      "G_fe_estimated": 5760,
+      "G_fe_zero_separated": 0,
+      "K_regressors": 76,
+      "outcome_mean_count": 9.753036910733663,
+      "outcome_mean_rate_per_min": 0.2560250169639344,
+      "alpha": 0.241816311260758,
+      "theta_nb": 4.135370334558073,
+      "loglik_nb2": -4016537.85503345,
+      "loglik_poisson": -4798043.506702259,
+      "lr_overdispersion": 1563011.3033376187,
+      "aic_nb2": 8044749.7100669,
+      "n_clusters_station": 120,
+      "n_clusters_date": 716,
+      "elapsed_sec": 17.14
+    },
+    "return_full_2024_2025": {
+      "model": "return_full_2024_2025",
+      "include_temp_sq": false,
+      "N_total_valid": 1910158,
+      "N_est": 1909513,
+      "N_zero_fe_rows": 645,
+      "G_fe_estimated": 5758,
+      "G_fe_zero_separated": 2,
+      "K_regressors": 76,
+      "outcome_mean_count": 7.782327745346588,
+      "outcome_mean_rate_per_min": 0.14613789402803237,
+      "alpha": 0.2052060709176383,
+      "theta_nb": 4.873150173034408,
+      "loglik_nb2": -4191797.9203188126,
+      "loglik_poisson": -4816260.303569628,
+      "lr_overdispersion": 1248924.7665016307,
+      "aic_nb2": 8395265.840637624,
+      "n_clusters_station": 120,
+      "n_clusters_date": 716,
+      "elapsed_sec": 15.07
+    }
+  },
+  "output_files": [
+    "data_audit_report.csv",
+    "desc_categorical_test_2025.csv",
+    "desc_categorical_train_2024.csv",
+    "desc_numeric_test_2025.csv",
+    "desc_numeric_train_2024.csv",
+    "diagnostic_event_heterogeneity.csv",
+    "eval_metrics_summary.csv",
+    "figures/fig_error_attribution_by_variable.pdf",
+    "figures/fig_error_attribution_by_variable.png",
+    "figures/fig_eval_test_2025.pdf",
+    "figures/fig_eval_test_2025.png",
+    "figures/fig_eval_train_2024.pdf",
+    "figures/fig_eval_train_2024.png",
+    "figures/fig_hourly_calendar_effects.pdf",
+    "figures/fig_hourly_calendar_effects.png",
+    "figures/fig_predicted_rent_vs_return_characteristics.pdf",
+    "figures/fig_predicted_rent_vs_return_characteristics.png",
+    "figures/fig_station_hour_multidim_heatmap.pdf",
+    "figures/fig_station_hour_multidim_heatmap.png",
+    "figures/fig_weather_event_effects.pdf",
+    "figures/fig_weather_event_effects.png",
+    "latent_demand_60min_verification.csv",
+    "manifest.json",
+    "params_calendar_hourly.csv",
+    "params_core_weather_event.csv",
+    "params_fixed_effects.parquet",
+    "predicted_rent_return_characteristics.csv",
+    "predictions_2025_oos.parquet",
+    "station_latent_demand_profile.csv"
+  ]
+}
